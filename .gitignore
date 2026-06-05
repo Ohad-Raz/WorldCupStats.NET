@@ -1,0 +1,43 @@
+# Local working notes (not for the repo)
+PROJECT_HANDOFF.md
+
+# Course docs stay local only
+WorldCupStats/DOCS/
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+artifacts/
+
+# Visual Studio / Rider
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# NuGet
+project.lock.json
+project.fragment.lock.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Runtime user data (created beside the exe at run time)
+**/DataFiles/settings.json
+**/DataFiles/favoriteTeam.txt
+**/DataFiles/favoritePlayers.txt
