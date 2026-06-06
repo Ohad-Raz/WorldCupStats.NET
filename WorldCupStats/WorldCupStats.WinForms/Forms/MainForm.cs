@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using WorldCupStats.Data.Models;
 using WorldCupStats.Data.Services;
 using WorldCupStats.WinForms.Forms;
@@ -18,6 +19,7 @@ namespace WorldCupStats.WinForms
         private List<Match>? _matches;
         private bool _isLoading;
         private readonly PlayerImageService _playerImageService = new();
+        private readonly RankingService _rankingService = new();
 
         // Designer builds the form layout.
         public MainForm()
@@ -77,6 +79,7 @@ namespace WorldCupStats.WinForms
 
                 // 5. Fill the two player flow panels from the first match roster
                 RebuildPlayerPanels();
+                RebuildRankingGrids();
 
             }
             catch (Exception ex)
@@ -122,6 +125,7 @@ namespace WorldCupStats.WinForms
                 // 3. Fetch matches for this team then refresh the UI.
                 _matches = await _worldCupData.GetMatchesByFifaCodeAsync(_settings, selectedTeam.FifaCode);
                 RebuildPlayerPanels();
+                RebuildRankingGrids();
             }
             catch (Exception ex)
             {
@@ -194,11 +198,17 @@ namespace WorldCupStats.WinForms
             tile.ContextMenuStrip = contextMenuPlayers;
             // 4. Start drag/drop from the generated player tile.
             tile.MouseDown += PlayerTile_MouseDown;
+            tile.Click += PlayerTile_Click;
 
             foreach (Control child in tile.Controls)
             {
                 child.MouseDown += PlayerTile_MouseDown;
+                child.Click += PlayerTile_Click;
+
             }
+
+
+
             return tile;
         }
 
@@ -319,6 +329,14 @@ namespace WorldCupStats.WinForms
         // Moves the right-clicked tile into the favorite panel if rules allow, then saves and refreshes stars.
         private void AddSelectedPlayerToFavorites()
         {
+            // 0. If there are selected players in the other panel, move them together.
+            List<PlayerUserControl> selectedTiles = GetSelectedPlayerTiles(flowOtherPlayers);
+            if (selectedTiles.Count > 0)
+            {
+                MoveSelectedPlayerTiles(flowOtherPlayers, flowFavoritePlayers, true);
+                return;
+            }
+
             // 1. Resolve the tile under the context menu, if any.
             PlayerUserControl? tile = GetSelectedPlayerControlFromContextMenu();
             if (tile is null)
@@ -351,6 +369,13 @@ namespace WorldCupStats.WinForms
         // Moves the right-clicked tile out of favorites only when it already lives in that panel.
         private void RemoveSelectedPlayerFromFavorites()
         {
+            // 0. If there are selected players in the favorites panel, move them together.
+            List<PlayerUserControl> selectedTiles = GetSelectedPlayerTiles(flowFavoritePlayers);
+            if (selectedTiles.Count > 0)
+            {
+                MoveSelectedPlayerTiles(flowFavoritePlayers, flowOtherPlayers, false);
+                return;
+            }
             // 1. Resolve the tile under the context menu, if any.
             PlayerUserControl? tile = GetSelectedPlayerControlFromContextMenu();
             if (tile is null)
@@ -423,7 +448,8 @@ namespace WorldCupStats.WinForms
                 _matches = new List<Match>();
                 ClearFlowPanel(flowFavoritePlayers);
                 ClearFlowPanel(flowOtherPlayers);
-
+                dgvPlayerRankings.DataSource = null;
+                dgvMatchRankings.DataSource = null;
                 // 4. Do not reuse old favorite team automatically after settings change.
                 cbFavoriteTeam.SelectedIndex = -1;
             }
@@ -546,47 +572,151 @@ namespace WorldCupStats.WinForms
             RefreshPlayerControlStars();
         }
 
-        // Starts dragging a player tile when the user holds the left mouse button.
+        // Starts dragging a player tile when Ctrl is not held.
         private void PlayerTile_MouseDown(object sender, MouseEventArgs e)
         {
-            // 1. Only start drag with left mouse button.
+            // 1. Only left mouse button can start drag.
             if (e.Button != MouseButtons.Left)
             {
                 return;
             }
-
-            // 2. Make sure the sender is a player tile.
-            PlayerUserControl? tile = sender as PlayerUserControl;
-            if (tile is null)
+            // 2. Ctrl + click is reserved for multi-select, so do not start drag.
+            if ((ModifierKeys & Keys.Control) == Keys.Control)
             {
                 return;
             }
 
-            // 3. Start dragging the tile.
-            tile.DoDragDrop(tile, DragDropEffects.Move);
+            // 3. Sender can be the tile or a child control inside it.
+            Control? source = sender as Control;
+            while (source != null && source is not PlayerUserControl)
+            {
+                source = source.Parent;
+            }
+
+            // 4. Start dragging the whole PlayerUserControl.
+            PlayerUserControl? tile = source as PlayerUserControl;
+            tile?.DoDragDrop(tile, DragDropEffects.Move);
         }
 
-        //private void PlayerTile_MouseDown(object sender, MouseEventArgs e)
-        //{
-        //    // 1. Only left mouse button starts drag.
-        //    if (e.Button != MouseButtons.Left)
-        //    {
-        //        return;
-        //    }
+        // Selects or unselects a player tile for multi-move.
+        private void PlayerTile_Click(object sender, EventArgs e)
+        {
+            // 1. Multi-select only happens when Ctrl is held fixed my drag and drop conflict:)
+            if ((ModifierKeys & Keys.Control) != Keys.Control)
+            { return; }
 
-        //    // 2. Sender can be the tile itself or a child control inside it.
-        //    Control? source = sender as Control;
-        //    while (source != null && source is not PlayerUserControl)
-        //    {
-        //        source = source.Parent;
-        //    }
+            // 2. Sender can be the tile or a child control inside it.
+            Control? source = sender as Control;
+            while (source != null && source is not PlayerUserControl)
+            {
+                source = source.Parent;
+            }
 
-        //    // 3. Drag the whole PlayerUserControl, similar to dragging PictureBox in the exercise.
-        //    PlayerUserControl? tile = source as PlayerUserControl;
-        //    if (tile != null)
-        //    {
-        //        tile.DoDragDrop(tile, DragDropEffects.Move);
-        //    }
-        //}
+            // 3. Toggle selected state on the tile.
+            PlayerUserControl? tile = source as PlayerUserControl;
+            tile?.SetSelectedForMove(!tile.IsSelectedForMove);
+        }
+
+        // Gets selected player tiles from one panel.
+        private List<PlayerUserControl> GetSelectedPlayerTiles(FlowLayoutPanel panel)
+        {
+            List<PlayerUserControl> selectedTiles = new List<PlayerUserControl>();
+
+            // 1. Loop through all controls in the panel.
+            foreach (Control control in panel.Controls)
+            {
+                // 2. Keep only selected PlayerUserControl tiles.
+                if (control is PlayerUserControl tile && tile.IsSelectedForMove)
+                {
+                    selectedTiles.Add(tile);
+                }
+            }
+
+            return selectedTiles;
+        }
+        // Moves selected player tiles from one panel to another.
+        private void MoveSelectedPlayerTiles(FlowLayoutPanel sourcePanel, FlowLayoutPanel targetPanel, bool isFavorite)
+        {
+            // 1. Get selected tiles from the source panel.
+            List<PlayerUserControl> selectedTiles = GetSelectedPlayerTiles(sourcePanel);
+
+            // 2. If nothing is selected, stop.
+            if (selectedTiles.Count == 0)
+            {
+                return;
+            }
+
+            // 3. If moving to favorites, check the maximum of three.
+            if (targetPanel == flowFavoritePlayers)
+            {
+                int availablePlaces = 3 - flowFavoritePlayers.Controls.Count;
+
+                if (selectedTiles.Count > availablePlaces)
+                {
+                    MessageBox.Show("You can choose only three favorite players.");
+                    return;
+                }
+            }
+
+            // 4. Move each selected tile.
+            foreach (PlayerUserControl tile in selectedTiles)
+            {
+                MovePlayerControl(tile, targetPanel, isFavorite);
+                tile.SetSelectedForMove(false);
+            }
+
+            // 5. Save and refresh after the movement.
+            SaveCurrentFavoritePlayers();
+            RefreshPlayerControlStars();
+        }
+
+        // Updates the player context menu based on where the clicked tile currently is.
+        private void contextMenuPlayers_Opening(object sender, CancelEventArgs e)
+        {
+            // 1. Find the player tile that opened the context menu.
+            PlayerUserControl? tile = GetSelectedPlayerControlFromContextMenu();
+
+            if (tile is null)
+            {
+                menuItemAddToFavorites.Enabled = false;
+                menuItemRemoveFromFavorites.Enabled = false;
+                menuItemSetPicture.Enabled = false;
+                return;
+            }
+
+            // 2. Enable only the action that makes sense for the tile's current panel.
+            menuItemAddToFavorites.Enabled = tile.Parent == flowOtherPlayers;
+            menuItemRemoveFromFavorites.Enabled = tile.Parent == flowFavoritePlayers;
+
+            // 3. Picture can be set for any player tile.
+            menuItemSetPicture.Enabled = true;
+        }
+        // Rebuilds the player and match ranking tables for the selected team.
+        private void RebuildRankingGrids()
+        {
+            // 1. Get the selected team and make sure matches are loaded.
+            Team? team = (Team?)cbFavoriteTeam.SelectedItem;
+            if (team is null || _matches is null)
+            {
+                dgvPlayerRankings.DataSource = null;
+                dgvMatchRankings.DataSource = null;
+                return;
+            }
+
+            // 2. Build player rankings for the selected team.
+            List<PlayerRanking> playerRankings = _rankingService.GetPlayerRankings(
+                _matches,
+                team.FifaCode);
+
+            // 3. Build match rankings by attendance.
+            List<MatchRanking> matchRankings = _rankingService.GetMatchRankings(_matches);
+
+            // 4. Bind rankings to the grids.
+            dgvPlayerRankings.DataSource = null;
+            dgvPlayerRankings.DataSource = playerRankings;
+
+            dgvMatchRankings.DataSource = null;
+            dgvMatchRankings.DataSource = matchRankings;
+        }
     }
 }

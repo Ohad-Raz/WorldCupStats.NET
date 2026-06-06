@@ -5,6 +5,7 @@ namespace WorldCupStats.WinForms
     public partial class PlayerUserControl : UserControl
     {
         private Player? _player;
+        public bool IsSelectedForMove { get; private set; }
 
         public PlayerUserControl()
         {
@@ -41,6 +42,22 @@ namespace WorldCupStats.WinForms
             if (File.Exists(imagePath))
             {
                 pbPlayerImage.ImageLocation = imagePath;
+            }
+        }
+        // Changes whether this player tile is visually selected for multi-move.
+        public void SetSelectedForMove(bool isSelected)
+        {
+            // 1. Save selected state.
+            IsSelectedForMove = isSelected;
+
+            // 2. Show selected state visually.
+            if (isSelected)
+            {
+                BackColor = Color.LightBlue;
+            }
+            else
+            {
+                BackColor = SystemColors.Control;
             }
         }
     }
