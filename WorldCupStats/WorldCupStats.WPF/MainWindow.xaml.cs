@@ -26,42 +26,44 @@ namespace WorldCupStats.WPF
         private AppSettings? _settings;
         private List<Team> _teams = new List<Team>();
         private List<Match> _favoriteTeamMatches = new List<Match>();
+        private readonly PlayerImageService _playerImageService = new PlayerImageService();
         public MainWindow()
         {
             InitializeComponent();
         }
-       // Loads settings, teams, favorite team, and opponents when the WPF window opens.
-private async void Window_Loaded(object sender, RoutedEventArgs e)
-{
-    try
-    {
-        // 1. Load shared settings from the Data layer.
-        _settings = _settingsService.Load();
-
-        // 2. If settings are missing, open WPF settings window.
-        if (_settings is null)
+        // Loads settings, teams, favorite team, and opponents when the WPF window opens.
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            SettingsWindow settingsWindow = new SettingsWindow();
-            settingsWindow.Owner = this;
-
-            if (settingsWindow.ShowDialog() != true || settingsWindow.SelectedSettings is null)
+            try
             {
-                Close();
-                return;
+                // 1. Load shared settings from the Data layer.
+                _settings = _settingsService.Load();
+
+                // 2. If settings are missing, open WPF settings window.
+                if (_settings is null)
+                {
+                    SettingsWindow settingsWindow = new SettingsWindow();
+                    settingsWindow.Owner = this;
+
+                    if (settingsWindow.ShowDialog() != true || settingsWindow.SelectedSettings is null)
+                    {
+                        Close();
+                        return;
+                    }
+
+                    _settings = settingsWindow.SelectedSettings;
+                    _settingsService.Save(_settings);
+                }
+
+                // 3. Load teams, restore favorite team, and load opponents.
+                    ApplyDisplaySettings();
+                await ReloadTeamsAsync();
             }
-
-            _settings = settingsWindow.SelectedSettings;
-            _settingsService.Save(_settings);
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}");
+            }
         }
-
-        // 3. Load teams, restore favorite team, and load opponents.
-        await ReloadTeamsAsync();
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show($"An error occurred: {ex.Message}");
-    }
-}
         // Opens the settings window and reloads WPF data after changes.
         private async void btnSettings_Click(object sender, RoutedEventArgs e)
         {
@@ -79,6 +81,7 @@ private async void Window_Loaded(object sender, RoutedEventArgs e)
             try
             {
                 await ReloadTeamsAsync();
+                ApplyDisplaySettings();
             }
             catch (Exception ex)
             {
@@ -231,6 +234,308 @@ private async void Window_Loaded(object sender, RoutedEventArgs e)
             lblMatchResult.Text =
                 $"{selectedMatch.HomeTeam?.Country} {selectedMatch.HomeTeam?.Goals} : " +
                 $"{selectedMatch.AwayTeam?.Goals} {selectedMatch.AwayTeam?.Country}";
+            DrawStartingElevenOnPitch();
+        }
+        // Opens details for the selected favorite team.
+        private void btnFavoriteTeamDetails_Click(object sender, RoutedEventArgs e)
+        {
+            Team? team = cmbFavoriteTeam.SelectedItem as Team;
+
+            if (team is null)
+            {
+                MessageBox.Show("Please select a favorite team first.");
+                return;
+            }
+
+            TeamDetailsWindow window = new TeamDetailsWindow(team);
+            window.Owner = this;
+            window.ShowDialog();
+        }
+
+        // Opens details for the selected opponent team.
+        private void btnOpponentTeamDetails_Click(object sender, RoutedEventArgs e)
+        {
+            Team? team = cmbOpponentTeam.SelectedItem as Team;
+
+            if (team is null)
+            {
+                MessageBox.Show("Please select an opponent first.");
+                return;
+            }
+
+            TeamDetailsWindow window = new TeamDetailsWindow(team);
+            window.Owner = this;
+            window.ShowDialog();
+        }
+        // Finds the match between the selected favorite team and selected opponent.
+        private Match? GetSelectedMatch()
+        {
+            Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
+            Team? opponentTeam = cmbOpponentTeam.SelectedItem as Team;
+
+            if (favoriteTeam is null || opponentTeam is null)
+            {
+                return null;
+            }
+
+            foreach (Match match in _favoriteTeamMatches)
+            {
+                bool favoriteHomeOpponentAway =
+                    match.HomeTeam?.Code == favoriteTeam.FifaCode &&
+                    match.AwayTeam?.Code == opponentTeam.FifaCode;
+
+                bool opponentHomeFavoriteAway =
+                    match.HomeTeam?.Code == opponentTeam.FifaCode &&
+                    match.AwayTeam?.Code == favoriteTeam.FifaCode;
+
+                if (favoriteHomeOpponentAway || opponentHomeFavoriteAway)
+                {
+                    return match;
+                }
+            }
+
+            return null;
+        }
+        // Gets the selected favorite team's statistics from the selected match.
+        private TeamStatistics? GetFavoriteTeamStatistics(Match match)
+        {
+            Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
+
+            if (favoriteTeam is null)
+            {
+                return null;
+            }
+
+            if (match.HomeTeam?.Code == favoriteTeam.FifaCode)
+            {
+                return match.HomeTeamStatistics;
+            }
+
+            if (match.AwayTeam?.Code == favoriteTeam.FifaCode)
+            {
+                return match.AwayTeamStatistics;
+            }
+
+            return null;
+        }
+        // Draws the selected favorite team's starting eleven on the pitch.
+        private void DrawStartingElevenOnPitch()
+        {
+            // 1. Clear old player labels.
+            pitchCanvas.Children.Clear();
+
+            // 2. Find selected match and team statistics.
+            Match? match = GetSelectedMatch();
+            if (match is null)
+            {
+                return;
+            }
+
+            TeamStatistics? statistics = GetFavoriteTeamStatistics(match);
+            if (statistics is null || statistics.StartingEleven is null)
+            {
+                return;
+            }
+
+            // 3. Draw each player according to position.
+            foreach (Player player in statistics.StartingEleven)
+            {
+                DrawPlayerOnPitch(player);
+            }
+        }
+        // Draws one player on the pitch according to his position.
+        private void DrawPlayerOnPitch(Player player)
+        {
+            double canvasWidth = pitchCanvas.ActualWidth;
+            double canvasHeight = pitchCanvas.ActualHeight;
+
+            if (canvasWidth == 0 || canvasHeight == 0)
+            {
+                canvasWidth = 700;
+                canvasHeight = 220;
+            }
+
+            double x = 0;
+            double y = 0;
+
+            int samePositionIndex = CountPlayersAlreadyDrawnInPosition(player.Position);
+
+            if (player.Position == "Goalie")
+            {
+                x = canvasWidth * 0.08;
+                y = canvasHeight * 0.45;
+            }
+            else if (player.Position == "Defender")
+            {
+                x = canvasWidth * 0.28;
+                y = 30 + samePositionIndex * 40;
+            }
+            else if (player.Position == "Midfield")
+            {
+                x = canvasWidth * 0.52;
+                y = 30 + samePositionIndex * 40;
+            }
+            else
+            {
+                x = canvasWidth * 0.78;
+                y = 45 + samePositionIndex * 45;
+            }
+
+            Border playerBox = new Border
+            {
+                Width = 140,
+                Height = 38,
+                Background = Brushes.White,
+                BorderBrush = Brushes.DarkGreen,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(4),
+                Child = new TextBlock
+                {
+                    Text = $"{player.ShirtNumber} {player.Name}",
+                    FontSize = 10,
+                    FontWeight = FontWeights.Bold,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap
+                }
+            };
+            playerBox.Tag = player.Position;
+
+            playerBox.Cursor = Cursors.Hand;
+            playerBox.MouseLeftButtonUp += (sender, e) =>
+            {
+                OpenPlayerDetails(player);
+            };
+
+            Canvas.SetLeft(playerBox, x);
+            Canvas.SetTop(playerBox, y);
+
+            pitchCanvas.Children.Add(playerBox);
+        }
+        // Counts how many drawn player boxes already belong to the same position group.
+        private int CountPlayersAlreadyDrawnInPosition(string position)
+        {
+            int count = 0;
+
+            foreach (UIElement element in pitchCanvas.Children)
+            {
+                if (element is Border border && border.Tag is string existingPosition)
+                {
+                    if (existingPosition == position)
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+        // Gets the event list for the selected favorite team in the selected match.
+        private List<MatchEvent> GetFavoriteTeamEvents(Match match)
+        {
+            Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
+
+            if (favoriteTeam is null)
+            {
+                return new List<MatchEvent>();
+            }
+
+            if (match.HomeTeam?.Code == favoriteTeam.FifaCode)
+            {
+                return match.HomeTeamEvents ?? new List<MatchEvent>();
+            }
+
+            if (match.AwayTeam?.Code == favoriteTeam.FifaCode)
+            {
+                return match.AwayTeamEvents ?? new List<MatchEvent>();
+            }
+
+            return new List<MatchEvent>();
+        }
+
+        // Counts one event type for one player in the selected match.
+        private int CountPlayerEventsInMatch(Player player, List<MatchEvent> events, string eventNamePart)
+        {
+            int count = 0;
+
+            foreach (MatchEvent matchEvent in events)
+            {
+                if (matchEvent.Player == player.Name &&
+                    matchEvent.TypeOfEvent.Contains(eventNamePart))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+        // Opens the player details window for a player shown on the pitch.
+        private void OpenPlayerDetails(Player player)
+        {
+            Match? match = GetSelectedMatch();
+            if (match is null)
+            {
+                return;
+            }
+
+            Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
+            if (favoriteTeam is null)
+            {
+                return;
+            }
+
+            List<MatchEvent> events = GetFavoriteTeamEvents(match);
+
+            int goals = CountPlayerEventsInMatch(player, events, "goal");
+            int yellowCards = CountPlayerEventsInMatch(player, events, "yellow-card");
+
+            string? imagePath = _playerImageService.GetPlayerImagePath(
+                favoriteTeam.FifaCode,
+                player);
+
+            PlayerDetailsWindow window = new PlayerDetailsWindow(
+                player,
+                goals,
+                yellowCards,
+                imagePath);
+
+            window.Owner = this;
+            window.ShowDialog();
+        }
+        // Applies WPF window mode and resolution settings.
+        private void ApplyDisplaySettings()
+        {
+            if (_settings is null)
+            {
+                return;
+            }
+
+            if (_settings.Resolution == "1024x768")
+            {
+                Width = 1024;
+                Height = 768;
+            }
+            else if (_settings.Resolution == "1280x720")
+            {
+                Width = 1280;
+                Height = 720;
+            }
+            else
+            {
+                Width = 800;
+                Height = 450;
+            }
+
+            if (_settings.IsFullScreen)
+            {
+                WindowStyle = WindowStyle.None;
+                WindowState = WindowState.Maximized;
+            }
+            else
+            {
+                WindowStyle = WindowStyle.SingleBorderWindow;
+                WindowState = WindowState.Normal;
+            }
         }
     }
 }

@@ -1,0 +1,64 @@
+﻿<Window x:Class="WorldCupStats.WPF.TeamDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WorldCupStats.WPF"
+        mc:Ignorable="d"
+           Title="Team Details"
+        Height="360"
+        Width="420"
+        WindowStartupLocation="CenterOwner"
+        Opacity="1"
+        Loaded="Window_Loaded">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="lblTeamName"
+                   Grid.Row="0"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Wins:" FontWeight="Bold"/>
+            <TextBlock x:Name="lblWins" Grid.Row="0" Grid.Column="1"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Losses:" FontWeight="Bold"/>
+            <TextBlock x:Name="lblLosses" Grid.Row="1" Grid.Column="1"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Draws:" FontWeight="Bold"/>
+            <TextBlock x:Name="lblDraws" Grid.Row="2" Grid.Column="1"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Games played:" FontWeight="Bold"/>
+            <TextBlock x:Name="lblGamesPlayed" Grid.Row="3" Grid.Column="1"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Goals for:" FontWeight="Bold"/>
+            <TextBlock x:Name="lblGoalsFor" Grid.Row="4" Grid.Column="1"/>
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Goals against:" FontWeight="Bold"/>
+            <TextBlock x:Name="lblGoalsAgainst" Grid.Row="5" Grid.Column="1"/>
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Goal difference:" FontWeight="Bold"/>
+            <TextBlock x:Name="lblGoalDifference" Grid.Row="6" Grid.Column="1"/>
+        </Grid>
+    </Grid>
+</Window>

@@ -30,12 +30,12 @@
               Height="30"/>
 
         <ComboBox x:Name="cmbOpponentTeam"
-          SelectionChanged="cmbOpponentTeam_SelectionChanged"
-          DisplayMemberPath="DisplayName"
-          Grid.Row="0"
-          Grid.Column="1"
-          Margin="0,0,10,0"
-          Height="30"/>
+              SelectionChanged="cmbOpponentTeam_SelectionChanged"
+              DisplayMemberPath="DisplayName"
+              Grid.Row="0"
+              Grid.Column="1"
+              Margin="0,0,10,0"
+              Height="30"/>
 
         <Button x:Name="btnSettings"
             Grid.Row="0"
@@ -43,7 +43,7 @@
             Content="Settings"
             Width="100"
             Height="30"
-                 Click="btnSettings_Click"/>
+            Click="btnSettings_Click"/>
 
         <!-- Result row -->
         <TextBlock x:Name="lblMatchResult"
@@ -55,21 +55,42 @@
                FontWeight="Bold"
                Text="Select opponent to show result"/>
 
-        <!-- Buttons row -->
-        <StackPanel Grid.Row="2"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Orientation="Horizontal">
-            <Button x:Name="btnFavoriteTeamDetails"
-                Content="Favorite team details"
-                Width="160"
-                Height="35"
-                Margin="0,0,10,0"/>
+        <!-- Bottom area: buttons + pitch -->
+        <Grid Grid.Row="2"
+          Grid.Column="0"
+          Grid.ColumnSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <Button x:Name="btnOpponentTeamDetails"
-                Content="Opponent details"
-                Width="160"
-                Height="35"/>
-        </StackPanel>
+            <!-- Buttons row -->
+            <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Margin="0,0,0,15">
+                <Button x:Name="btnFavoriteTeamDetails"
+                    Content="Favorite team details"
+                    Width="160"
+                    Height="35"
+                    Margin="0,0,10,0"
+                    Click="btnFavoriteTeamDetails_Click"/>
+
+                <Button x:Name="btnOpponentTeamDetails"
+                    Content="Opponent details"
+                    Width="160"
+                    Height="35"
+                    Click="btnOpponentTeamDetails_Click"/>
+            </StackPanel>
+
+            <!-- Pitch row -->
+            <Border x:Name="pitchBorder"
+                Grid.Row="1"
+                BorderBrush="DarkGreen"
+                BorderThickness="2"
+                Background="LightGreen">
+                <Canvas x:Name="pitchCanvas"
+                    MinHeight="220"/>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
