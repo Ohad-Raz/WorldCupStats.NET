@@ -1,4 +1,5 @@
 ﻿<Window x:Class="WorldCupStats.WPF.MainWindow"
+        Loaded="Window_Loaded"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,7 +7,69 @@
         xmlns:local="clr-namespace:WorldCupStats.WPF"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Top row -->
+        <ComboBox x:Name="cmbFavoriteTeam"
+              SelectionChanged="cmbFavoriteTeam_SelectionChanged"
+              DisplayMemberPath="DisplayName"
+              Grid.Row="0"
+              Grid.Column="0"
+              Margin="0,0,10,0"
+              Height="30"/>
+
+        <ComboBox x:Name="cmbOpponentTeam"
+          SelectionChanged="cmbOpponentTeam_SelectionChanged"
+          DisplayMemberPath="DisplayName"
+          Grid.Row="0"
+          Grid.Column="1"
+          Margin="0,0,10,0"
+          Height="30"/>
+
+        <Button x:Name="btnSettings"
+            Grid.Row="0"
+            Grid.Column="2"
+            Content="Settings"
+            Width="100"
+            Height="30"
+                 Click="btnSettings_Click"/>
+
+        <!-- Result row -->
+        <TextBlock x:Name="lblMatchResult"
+               Grid.Row="1"
+               Grid.Column="0"
+               Grid.ColumnSpan="3"
+               Margin="0,20,0,20"
+               FontSize="24"
+               FontWeight="Bold"
+               Text="Select opponent to show result"/>
+
+        <!-- Buttons row -->
+        <StackPanel Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Orientation="Horizontal">
+            <Button x:Name="btnFavoriteTeamDetails"
+                Content="Favorite team details"
+                Width="160"
+                Height="35"
+                Margin="0,0,10,0"/>
+
+            <Button x:Name="btnOpponentTeamDetails"
+                Content="Opponent details"
+                Width="160"
+                Height="35"/>
+        </StackPanel>
     </Grid>
 </Window>
