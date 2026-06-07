@@ -20,6 +20,10 @@ namespace WorldCupStats.WinForms
         private bool _isLoading;
         private readonly PlayerImageService _playerImageService = new();
         private readonly RankingService _rankingService = new();
+        //printing
+        private int _printPlayerRowIndex;
+        private int _printMatchRowIndex;
+        private bool _printingPlayers;
 
         // Designer builds the form layout.
         public MainForm()
@@ -715,8 +719,200 @@ namespace WorldCupStats.WinForms
             dgvPlayerRankings.DataSource = null;
             dgvPlayerRankings.DataSource = playerRankings;
 
+            // Hide technical image path column from the table and print output.
+            if (dgvPlayerRankings.Columns["ImagePath"] != null)
+            {
+                dgvPlayerRankings.Columns["ImagePath"].Visible = false;
+            }
             dgvMatchRankings.DataSource = null;
             dgvMatchRankings.DataSource = matchRankings;
+        }
+
+        // Opens page setup for the rankings print document.
+        private void btnPageSetupRankings_Click(object sender, EventArgs e)
+        {
+            pageSetupDialogRankings.ShowDialog();
+        }
+
+        // Opens print preview for the ranking tables.
+        private void btnPreviewRankings_Click(object sender, EventArgs e)
+        {
+            _printPlayerRowIndex = 0;
+            _printMatchRowIndex = 0;
+            _printingPlayers = true;
+
+            printPreviewDialogRankings.ShowDialog();
+        }
+
+        private void btnPrintRankings_Click(object sender, EventArgs e)
+        {
+            _printPlayerRowIndex = 0;
+            _printMatchRowIndex = 0;
+            _printingPlayers = true;
+
+            if (printDialogRankings.ShowDialog() == DialogResult.OK)
+            {
+                printDocumentRankings.Print();
+            }
+        }
+
+        // Uses the normal print flow. User can choose Microsoft Print to PDF.
+        private void btnExportRankings_Click(object sender, EventArgs e)
+        {
+            btnPrintRankings_Click(sender, e);
+        }
+
+
+        // Prints ranking tables with simple pagination.
+        private void printDocumentRankings_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
+        {
+            if (e.Graphics == null)
+            {
+                e.HasMorePages = false;
+                return;
+            }
+
+            int x = e.MarginBounds.Left;
+            int y = e.MarginBounds.Top;
+            int width = e.MarginBounds.Width;
+            int bottom = e.MarginBounds.Bottom;
+
+            Font mainTitleFont = new Font("Arial", 16, FontStyle.Bold);
+            Brush brush = Brushes.Black;
+
+            e.Graphics.DrawString("WorldCupStats Rankings", mainTitleFont, brush, x, y);
+            y += 45;
+
+            if (_printingPlayers)
+            {
+                bool finishedPlayers = PrintDataGridViewPage(
+                    e.Graphics,
+                    dgvPlayerRankings,
+                    "Player rankings",
+                    x,
+                    ref y,
+                    width,
+                    bottom,
+                    ref _printPlayerRowIndex);
+
+                if (!finishedPlayers)
+                {
+                    e.HasMorePages = true;
+                    return;
+                }
+
+                _printingPlayers = false;
+                y += 20;
+            }
+
+            bool finishedMatches = PrintDataGridViewPage(
+                e.Graphics,
+                dgvMatchRankings,
+                "Match rankings",
+                x,
+                ref y,
+                width,
+                bottom,
+                ref _printMatchRowIndex);
+
+            e.HasMorePages = !finishedMatches;
+        }
+        // Prints one page of a DataGridView and remembers the next row to print.
+        private bool PrintDataGridViewPage(
+            Graphics graphics,
+            DataGridView grid,
+            string title,
+            int x,
+            ref int y,
+            int width,
+            int bottom,
+            ref int rowIndex)
+        {
+            Font titleFont = new Font("Arial", 14, FontStyle.Bold);
+            Font headerFont = new Font("Arial", 9, FontStyle.Bold);
+            Font rowFont = new Font("Arial", 8);
+            Brush brush = Brushes.Black;
+            Pen pen = Pens.Black;
+
+            int rowHeight = 25;
+
+            List<DataGridViewColumn> visibleColumns = new List<DataGridViewColumn>();
+
+            foreach (DataGridViewColumn column in grid.Columns)
+            {
+                if (column.Visible)
+                {
+                    visibleColumns.Add(column);
+                }
+            }
+
+            if (visibleColumns.Count == 0)
+            {
+                return true;
+            }
+
+            int columnWidth = width / visibleColumns.Count;
+
+            // Print title.
+            graphics.DrawString(title, titleFont, brush, x, y);
+            y += 35;
+
+            // Print headers.
+            int currentX = x;
+
+            foreach (DataGridViewColumn column in visibleColumns)
+            {
+                Rectangle headerRectangle = new Rectangle(currentX, y, columnWidth, rowHeight);
+                graphics.DrawRectangle(pen, headerRectangle);
+                graphics.DrawString(column.HeaderText, headerFont, brush, headerRectangle);
+                currentX += columnWidth;
+            }
+
+            y += rowHeight;
+
+            // Print rows until the page is full.
+            while (rowIndex < grid.Rows.Count)
+            {
+                DataGridViewRow row = grid.Rows[rowIndex];
+
+                if (row.IsNewRow)
+                {
+                    rowIndex++;
+                    continue;
+                }
+
+                if (y + rowHeight > bottom)
+                {
+                    return false;
+                }
+
+                currentX = x;
+
+                foreach (DataGridViewColumn column in visibleColumns)
+                {
+                    object? value = row.Cells[column.Index].Value;
+                    string text = value?.ToString() ?? string.Empty;
+
+                    Rectangle cellRectangle = new Rectangle(currentX, y, columnWidth, rowHeight);
+                    graphics.DrawRectangle(pen, cellRectangle);
+                    graphics.DrawString(text, rowFont, brush, cellRectangle);
+
+                    currentX += columnWidth;
+                }
+
+                y += rowHeight;
+                rowIndex++;
+            }
+
+            y += 20;
+            return true;
+        }
+
+        private void printDocumentRankings_EndPrint(object sender, System.Drawing.Printing.PrintEventArgs e)
+        {
+            _printPlayerRowIndex = 0;
+            _printMatchRowIndex = 0;
+            _printingPlayers = true;
         }
     }
 }
