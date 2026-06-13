@@ -77,18 +77,20 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
             
-            <Button x:Name="btnConfirm"
-                    Content="Confirm"
-                    Width="90"
-                    Height="30"
-                    Margin="0,0,10,0"
-                    Click="btnConfirm_Click"/>
+<Button x:Name="btnConfirm"
+        Content="Confirm"
+        Width="90"
+        Height="30"
+        Margin="0,0,10,0"
+        IsDefault="True"
+        Click="btnConfirm_Click"/>
 
             <Button x:Name="btnCancel"
-                    Content="Cancel"
-                    Width="90"
-                    Height="30"
-                    Click="btnCancel_Click"/>
+        Content="Cancel"
+        Width="90"
+        Height="30"
+        IsCancel="True"
+        Click="btnCancel_Click"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -1,8 +1,10 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using WorldCupStats.Data.Models;
+using WorldCupStats.Data.Persistence;
 
 namespace WorldCupStats.WPF
 {
@@ -40,21 +42,40 @@ namespace WorldCupStats.WPF
             {
                 imgPlayer.Source = new BitmapImage(new Uri(imagePath));
             }
+            else if (File.Exists(AppPaths.DefaultPlayerImagePath))
+            {
+                imgPlayer.Source = new BitmapImage(new Uri(AppPaths.DefaultPlayerImagePath));
+            }
         }
 
         // Plays a short animation when the player details window opens.
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        // Plays a short scale animation when the player details window opens.
+        private void Window_Loaded(
+            object sender,
+            RoutedEventArgs e)
         {
-            Opacity = 0;
+            contentScale.ScaleX = 0.75;
+            contentScale.ScaleY = 0.75;
 
-            DoubleAnimation fadeAnimation = new DoubleAnimation
-            {
-                From = 0,
-                To = 1,
-                Duration = TimeSpan.FromSeconds(0.3)
-            };
+            DoubleAnimation scaleAnimation =
+                new DoubleAnimation
+                {
+                    From = 0.75,
+                    To = 1,
+                    Duration = TimeSpan.FromSeconds(0.3),
+                    EasingFunction = new QuadraticEase
+                    {
+                        EasingMode = EasingMode.EaseOut
+                    }
+                };
 
-            BeginAnimation(Window.OpacityProperty, fadeAnimation);
+            contentScale.BeginAnimation(
+                ScaleTransform.ScaleXProperty,
+                scaleAnimation);
+
+            contentScale.BeginAnimation(
+                ScaleTransform.ScaleYProperty,
+                scaleAnimation);
         }
 
         // Closes the player details window.

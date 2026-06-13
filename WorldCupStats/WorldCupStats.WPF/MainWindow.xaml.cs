@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -18,6 +19,11 @@ namespace WorldCupStats.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        private enum PitchSide
+        {
+            Left,
+            Right
+        }
 
         private readonly SettingsService _settingsService = new SettingsService();
         private readonly FavoriteTeamService _favoriteTeamService = new FavoriteTeamService();
@@ -27,6 +33,7 @@ namespace WorldCupStats.WPF
         private List<Team> _teams = new List<Team>();
         private List<Match> _favoriteTeamMatches = new List<Match>();
         private readonly PlayerImageService _playerImageService = new PlayerImageService();
+        private bool _isLoading;
         public MainWindow()
         {
             InitializeComponent();
@@ -45,7 +52,8 @@ namespace WorldCupStats.WPF
                     SettingsWindow settingsWindow = new SettingsWindow();
                     settingsWindow.Owner = this;
 
-                    if (settingsWindow.ShowDialog() != true || settingsWindow.SelectedSettings is null)
+                    if (settingsWindow.ShowDialog() != true ||
+                        settingsWindow.SelectedSettings is null)
                     {
                         Close();
                         return;
@@ -55,22 +63,36 @@ namespace WorldCupStats.WPF
                     _settingsService.Save(_settings);
                 }
 
-                // 3. Load teams, restore favorite team, and load opponents.
-                    ApplyDisplaySettings();
+                // 3. Apply display settings before loading application data.
+                ApplyDisplaySettings();
+
+                // 4. Show loading while teams and matches are retrieved.
+                ShowLoading();
+
                 await ReloadTeamsAsync();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred: {ex.Message}");
             }
+            finally
+            {
+                HideLoading();
+            }
         }
         // Opens the settings window and reloads WPF data after changes.
-        private async void btnSettings_Click(object sender, RoutedEventArgs e)
+        // Opens the settings window and reloads WPF data after changes.
+        private async void btnSettings_Click(
+            object sender,
+            RoutedEventArgs e)
         {
-            SettingsWindow settingsWindow = new SettingsWindow(_settings);
+            SettingsWindow settingsWindow =
+                new SettingsWindow(_settings);
+
             settingsWindow.Owner = this;
 
-            if (settingsWindow.ShowDialog() != true || settingsWindow.SelectedSettings is null)
+            if (settingsWindow.ShowDialog() != true ||
+                settingsWindow.SelectedSettings is null)
             {
                 return;
             }
@@ -80,12 +102,19 @@ namespace WorldCupStats.WPF
 
             try
             {
-                await ReloadTeamsAsync();
+                ShowLoading();
+
                 ApplyDisplaySettings();
+                await ReloadTeamsAsync();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                MessageBox.Show(
+                    $"An error occurred: {ex.Message}");
+            }
+            finally
+            {
+                HideLoading();
             }
         }
         // Reloads teams, restores favorite team if possible, and reloads opponents.
@@ -170,24 +199,40 @@ namespace WorldCupStats.WPF
             }
         }
         // Reloads matches and opponents when the favorite team changes in WPF.
-        private async void cmbFavoriteTeam_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void cmbFavoriteTeam_SelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
         {
-            Team? selectedTeam = cmbFavoriteTeam.SelectedItem as Team;
+            if (_isLoading)
+            {
+                return;
+            }
+
+            Team? selectedTeam =
+                cmbFavoriteTeam.SelectedItem as Team;
 
             if (selectedTeam is null)
             {
                 return;
             }
 
-            _favoriteTeamService.SaveFavoriteTeam(selectedTeam.FifaCode);
-
+            _favoriteTeamService.SaveFavoriteTeam(
+                selectedTeam.FifaCode);
             try
             {
-                await LoadMatchesAndOpponentsAsync(selectedTeam);
+                ShowLoading();
+
+                await LoadMatchesAndOpponentsAsync(
+                    selectedTeam);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                MessageBox.Show(
+                    $"An error occurred: {ex.Message}");
+            }
+            finally
+            {
+                HideLoading();
             }
         }
 
@@ -296,156 +341,264 @@ namespace WorldCupStats.WPF
 
             return null;
         }
-        // Gets the selected favorite team's statistics from the selected match.
-        private TeamStatistics? GetFavoriteTeamStatistics(Match match)
+        // Gets the match statistics for a specific team.
+        private TeamStatistics? GetTeamStatistics(
+            Match match,
+            string fifaCode)
         {
-            Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
-
-            if (favoriteTeam is null)
-            {
-                return null;
-            }
-
-            if (match.HomeTeam?.Code == favoriteTeam.FifaCode)
+            if (match.HomeTeam?.Code == fifaCode)
             {
                 return match.HomeTeamStatistics;
             }
 
-            if (match.AwayTeam?.Code == favoriteTeam.FifaCode)
+            if (match.AwayTeam?.Code == fifaCode)
             {
                 return match.AwayTeamStatistics;
             }
 
             return null;
         }
-        // Draws the selected favorite team's starting eleven on the pitch.
+        // Draws both starting elevens on opposite halves of the pitch.
         private void DrawStartingElevenOnPitch()
         {
-            // 1. Clear old player labels.
+            // 1. Clear previously drawn player controls.
             pitchCanvas.Children.Clear();
 
-            // 2. Find selected match and team statistics.
+            // 2. Get selected teams and match.
+            Team? favoriteTeam =
+                cmbFavoriteTeam.SelectedItem as Team;
+
+            Team? opponentTeam =
+                cmbOpponentTeam.SelectedItem as Team;
+
             Match? match = GetSelectedMatch();
-            if (match is null)
+
+            if (favoriteTeam is null ||
+                opponentTeam is null ||
+                match is null)
             {
                 return;
             }
 
-            TeamStatistics? statistics = GetFavoriteTeamStatistics(match);
-            if (statistics is null || statistics.StartingEleven is null)
+            // 3. Get statistics for both teams.
+            TeamStatistics? favoriteStatistics =
+                GetTeamStatistics(
+                    match,
+                    favoriteTeam.FifaCode);
+
+            TeamStatistics? opponentStatistics =
+                GetTeamStatistics(
+                    match,
+                    opponentTeam.FifaCode);
+
+            // 4. Draw favorite team on the left half.
+            if (favoriteStatistics?.StartingEleven is not null)
             {
-                return;
+                foreach (Player player in favoriteStatistics.StartingEleven)
+                {
+                    DrawPlayerOnPitch(
+     player,
+     favoriteTeam.FifaCode,
+     PitchSide.Left,
+     favoriteStatistics.StartingEleven);
+                }
             }
 
-            // 3. Draw each player according to position.
-            foreach (Player player in statistics.StartingEleven)
+            // 5. Draw opponent team on the right half.
+            if (opponentStatistics?.StartingEleven is not null)
             {
-                DrawPlayerOnPitch(player);
+                foreach (Player player in opponentStatistics.StartingEleven)
+                {
+                    DrawPlayerOnPitch(
+                        player,
+                        opponentTeam.FifaCode,
+                        PitchSide.Right,
+                        opponentStatistics.StartingEleven);
+                }
             }
         }
-        // Draws one player on the pitch according to his position.
-        private void DrawPlayerOnPitch(Player player)
+        // Draws one reusable player control on the pitch according to position.
+        // Draws one player control on the selected side of the pitch.
+        private void DrawPlayerOnPitch(
+            Player player,
+            string fifaCode,
+            PitchSide pitchSide,
+            IEnumerable<Player> startingEleven)
         {
             double canvasWidth = pitchCanvas.ActualWidth;
             double canvasHeight = pitchCanvas.ActualHeight;
 
             if (canvasWidth == 0 || canvasHeight == 0)
             {
-                canvasWidth = 700;
-                canvasHeight = 220;
+                canvasWidth = 900;
+                canvasHeight = 500;
             }
 
-            double x = 0;
-            double y = 0;
+            double x;
+            double y;
 
-            int samePositionIndex = CountPlayersAlreadyDrawnInPosition(player.Position);
+            int samePositionIndex =
+                CountPlayersAlreadyDrawnInPosition(
+                    player.Position,
+                    pitchSide);
+            int samePositionCount =
+    CountPlayersInPosition(
+        startingEleven,
+        player.Position);
 
-            if (player.Position == "Goalie")
+            double controlHeight = 58;
+
+            double centeredY =
+                CalculateCenteredPlayerY(
+                    canvasHeight,
+                    samePositionIndex,
+                    samePositionCount,
+                    controlHeight);
+            y = (canvasHeight - controlHeight) / 2;
+            double leftGoalkeeperX = canvasWidth * 0.02;
+            double leftDefenderX = canvasWidth * 0.13;
+            double leftMidfieldX = canvasWidth * 0.25;
+            double leftForwardX = canvasWidth * 0.38;
+
+            double rightGoalkeeperX = canvasWidth * 0.82;
+            double rightDefenderX = canvasWidth * 0.70;
+            double rightMidfieldX = canvasWidth * 0.58;
+            double rightForwardX = canvasWidth * 0.47;
+
+            if (pitchSide == PitchSide.Left)
             {
-                x = canvasWidth * 0.08;
-                y = canvasHeight * 0.45;
-            }
-            else if (player.Position == "Defender")
-            {
-                x = canvasWidth * 0.28;
-                y = 30 + samePositionIndex * 40;
-            }
-            else if (player.Position == "Midfield")
-            {
-                x = canvasWidth * 0.52;
-                y = 30 + samePositionIndex * 40;
+                if (player.Position == "Goalie")
+                {
+                    x = leftGoalkeeperX;
+                    y = (canvasHeight - controlHeight) / 2;
+                }
+                else if (player.Position == "Defender")
+                {
+                    x = leftDefenderX;
+                    y = centeredY;
+                }
+                else if (player.Position == "Midfield")
+                {
+                    x = leftMidfieldX;
+                    y = centeredY;
+                }
+                else
+                {
+                    x = leftForwardX;
+                    y = centeredY;
+                }
             }
             else
             {
-                x = canvasWidth * 0.78;
-                y = 45 + samePositionIndex * 45;
+                if (player.Position == "Goalie")
+                {
+                    x = rightGoalkeeperX;
+                    y = (canvasHeight - controlHeight) / 2;
+                }
+                else if (player.Position == "Defender")
+                {
+                    x = rightDefenderX;
+                    y = centeredY;
+                }
+                else if (player.Position == "Midfield")
+                {
+                    x = rightMidfieldX;
+                    y = centeredY;
+                }
+                else
+                {
+                    x = rightForwardX;
+                    y = centeredY;
+                }
+
             }
 
-            Border playerBox = new Border
-            {
-                Width = 140,
-                Height = 38,
-                Background = Brushes.White,
-                BorderBrush = Brushes.DarkGreen,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(4),
-                Child = new TextBlock
-                {
-                    Text = $"{player.ShirtNumber} {player.Name}",
-                    FontSize = 10,
-                    FontWeight = FontWeights.Bold,
-                    TextAlignment = TextAlignment.Center,
-                    TextWrapping = TextWrapping.Wrap
-                }
-            };
-            playerBox.Tag = player.Position;
+            string imagePath =
+                _playerImageService.GetPlayerImagePathOrDefault(
+                    fifaCode,
+                    player);
 
-            playerBox.Cursor = Cursors.Hand;
-            playerBox.MouseLeftButtonUp += (sender, e) =>
+            PlayerPitchUserControl playerControl =
+                new PlayerPitchUserControl();
+
+            playerControl.SetPlayer(
+                player,
+                imagePath);
+
+            playerControl.Tag = new PitchPlayerTag
             {
-                OpenPlayerDetails(player);
+                Position = player.Position,
+                PitchSide = pitchSide,
+                FifaCode = fifaCode
             };
 
-            Canvas.SetLeft(playerBox, x);
-            Canvas.SetTop(playerBox, y);
+            playerControl.MouseLeftButtonUp +=
+                PlayerPitchControl_MouseLeftButtonUp;
 
-            pitchCanvas.Children.Add(playerBox);
+            Canvas.SetLeft(playerControl, x);
+            Canvas.SetTop(playerControl, y);
+
+            pitchCanvas.Children.Add(playerControl);
         }
-        // Counts how many drawn player boxes already belong to the same position group.
-        private int CountPlayersAlreadyDrawnInPosition(string position)
+        // Stores layout and team information for one player control.
+        private class PitchPlayerTag
+        {
+            public string Position { get; set; } = string.Empty;
+
+            public PitchSide PitchSide { get; set; }
+
+            public string FifaCode { get; set; } = string.Empty;
+        }
+        // Opens player details when a player control on the pitch is clicked.
+        private void PlayerPitchControl_MouseLeftButtonUp(
+            object? sender,
+            MouseButtonEventArgs e)
+        {
+            PlayerPitchUserControl? playerControl =
+                sender as PlayerPitchUserControl;
+
+            if (playerControl?.BoundPlayer is null ||
+                playerControl.Tag is not PitchPlayerTag pitchTag)
+            {
+                return;
+            }
+
+            OpenPlayerDetails(
+                playerControl.BoundPlayer,
+                pitchTag.FifaCode);
+        }
+
+        // Counts already drawn players with the same position on one pitch side.
+        private int CountPlayersAlreadyDrawnInPosition(
+            string position,
+            PitchSide pitchSide)
         {
             int count = 0;
 
             foreach (UIElement element in pitchCanvas.Children)
             {
-                if (element is Border border && border.Tag is string existingPosition)
+                if (element is PlayerPitchUserControl playerControl &&
+                    playerControl.Tag is PitchPlayerTag pitchTag &&
+                    pitchTag.Position == position &&
+                    pitchTag.PitchSide == pitchSide)
                 {
-                    if (existingPosition == position)
-                    {
-                        count++;
-                    }
+                    count++;
                 }
             }
 
             return count;
         }
-        // Gets the event list for the selected favorite team in the selected match.
-        private List<MatchEvent> GetFavoriteTeamEvents(Match match)
+        // Gets the event list for a specific team in the selected match.
+        private List<MatchEvent> GetTeamEvents(
+            Match match,
+            string fifaCode)
         {
-            Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
-
-            if (favoriteTeam is null)
-            {
-                return new List<MatchEvent>();
-            }
-
-            if (match.HomeTeam?.Code == favoriteTeam.FifaCode)
+            if (match.HomeTeam?.Code == fifaCode)
             {
                 return match.HomeTeamEvents ?? new List<MatchEvent>();
             }
 
-            if (match.AwayTeam?.Code == favoriteTeam.FifaCode)
+            if (match.AwayTeam?.Code == fifaCode)
             {
                 return match.AwayTeamEvents ?? new List<MatchEvent>();
             }
@@ -469,39 +622,48 @@ namespace WorldCupStats.WPF
 
             return count;
         }
-        // Opens the player details window for a player shown on the pitch.
-        private void OpenPlayerDetails(Player player)
-        {
-            Match? match = GetSelectedMatch();
-            if (match is null)
-            {
-                return;
-            }
+ // Opens the player details window for a player shown on the pitch.
+private void OpenPlayerDetails(
+    Player player,
+    string fifaCode)
+{
+    Match? match = GetSelectedMatch();
 
-            Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
-            if (favoriteTeam is null)
-            {
-                return;
-            }
+    if (match is null)
+    {
+        return;
+    }
 
-            List<MatchEvent> events = GetFavoriteTeamEvents(match);
+    List<MatchEvent> events =
+        GetTeamEvents(match, fifaCode);
 
-            int goals = CountPlayerEventsInMatch(player, events, "goal");
-            int yellowCards = CountPlayerEventsInMatch(player, events, "yellow-card");
+    int goals =
+        CountPlayerEventsInMatch(
+            player,
+            events,
+            "goal");
 
-            string? imagePath = _playerImageService.GetPlayerImagePath(
-                favoriteTeam.FifaCode,
-                player);
+    int yellowCards =
+        CountPlayerEventsInMatch(
+            player,
+            events,
+            "yellow-card");
 
-            PlayerDetailsWindow window = new PlayerDetailsWindow(
-                player,
-                goals,
-                yellowCards,
-                imagePath);
+    string imagePath =
+        _playerImageService.GetPlayerImagePathOrDefault(
+            fifaCode,
+            player);
 
-            window.Owner = this;
-            window.ShowDialog();
-        }
+    PlayerDetailsWindow window =
+        new PlayerDetailsWindow(
+            player,
+            goals,
+            yellowCards,
+            imagePath);
+
+    window.Owner = this;
+    window.ShowDialog();
+}
         // Applies WPF window mode and resolution settings.
         private void ApplyDisplaySettings()
         {
@@ -536,6 +698,97 @@ namespace WorldCupStats.WPF
                 WindowStyle = WindowStyle.SingleBorderWindow;
                 WindowState = WindowState.Normal;
             }
+        }
+        // Redraws both starting elevens when the pitch changes size.
+        private void pitchCanvas_SizeChanged(
+            object? sender,
+            SizeChangedEventArgs e)
+        {
+            if (!IsLoaded)
+            {
+                return;
+            }
+
+            DrawStartingElevenOnPitch();
+        }
+        // Calculates a vertically centered position for one player group.
+        private double CalculateCenteredPlayerY(
+            double canvasHeight,
+            int playerIndex,
+            int playerCount,
+            double controlHeight)
+        {
+            if (playerCount <= 1)
+            {
+                return (canvasHeight - controlHeight) / 2;
+            }
+
+            double availableHeight = canvasHeight - controlHeight - 40;
+            double spacing = availableHeight / (playerCount - 1);
+
+            return 20 + playerIndex * spacing;
+        }
+        // Counts players with one position in a starting eleven.
+        private static int CountPlayersInPosition(
+            IEnumerable<Player> players,
+            string position)
+        {
+            return players.Count(player =>
+                player.Position == position);
+        }
+
+        // Confirms whether the user wants to close the WPF application.
+        private void Window_Closing(
+            object? sender,
+            System.ComponentModel.CancelEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show(
+                "Are you sure you want to exit?",
+                "Exit confirmation",
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Question,
+                MessageBoxResult.OK);
+
+            if (result != MessageBoxResult.OK)
+            {
+                e.Cancel = true;
+            }
+        }
+        // Shows the loading overlay and prevents repeated loading actions.
+        private void ShowLoading()
+        {
+            _isLoading = true;
+            loadingOverlay.Visibility = Visibility.Visible;
+        }
+
+        // Hides the loading overlay after loading finishes.
+        private void HideLoading()
+        {
+            loadingOverlay.Visibility = Visibility.Collapsed;
+            _isLoading = false;
+        }
+
+        // Returns the application to windowed mode when Esc is pressed in fullscreen.
+        private void Window_KeyDown(
+            object? sender,
+            KeyEventArgs e)
+        {
+            if (e.Key != Key.Escape ||
+                WindowStyle != WindowStyle.None)
+            {
+                return;
+            }
+
+            WindowStyle = WindowStyle.SingleBorderWindow;
+            WindowState = WindowState.Normal;
+
+            if (_settings is not null)
+            {
+                _settings.IsFullScreen = false;
+                _settingsService.Save(_settings);
+            }
+
+            e.Handled = true;
         }
     }
 }

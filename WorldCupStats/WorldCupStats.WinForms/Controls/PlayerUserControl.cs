@@ -1,4 +1,5 @@
 using WorldCupStats.Data.Models;
+using WorldCupStats.Data.Persistence;
 
 namespace WorldCupStats.WinForms
 {
@@ -36,12 +37,19 @@ namespace WorldCupStats.WinForms
         {
             lblFavoriteStar.Text = isFavorite ? "\u2605" : string.Empty;
         }
-        // Shows the given image file in the player picture box.
-        public void SetImage(string imagePath)
+        // Shows the given image file, or the shared default player image when missing.
+        public void SetImage(string? imagePath)
         {
-            if (File.Exists(imagePath))
+            string resolvedPath = imagePath ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(resolvedPath) || !File.Exists(resolvedPath))
             {
-                pbPlayerImage.ImageLocation = imagePath;
+                resolvedPath = AppPaths.DefaultPlayerImagePath;
+            }
+
+            if (File.Exists(resolvedPath))
+            {
+                pbPlayerImage.ImageLocation = resolvedPath;
             }
         }
         // Changes whether this player tile is visually selected for multi-move.

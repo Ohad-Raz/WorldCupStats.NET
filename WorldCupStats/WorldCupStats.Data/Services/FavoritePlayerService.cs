@@ -46,7 +46,7 @@ namespace WorldCupStats.Data.Services
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             IEnumerable<string> allIds = keptFromOtherTeams.Concat(idsForTeam);
-            _repo.WriteAllText(AppPaths.FavoritePlayersFile, string.Join(Environment.NewLine, allIds));
+            _repo.WriteAllText(AppPaths.FavoritePlayersFilePath, string.Join(Environment.NewLine, allIds));
         }
 
         public void ClearFavoritePlayers(string fifaCode)
@@ -56,12 +56,12 @@ namespace WorldCupStats.Data.Services
 
         private List<string> LoadAllFavoriteIds()
         {
-            if (!_repo.Exists(AppPaths.FavoritePlayersFile))
+            if (!_repo.Exists(AppPaths.FavoritePlayersFilePath))
             {
                 return new List<string>();
             }
 
-            string text = _repo.ReadAllText(AppPaths.FavoritePlayersFile);
+            string text = _repo.ReadAllText(AppPaths.FavoritePlayersFilePath);
 
             return text
                 .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)

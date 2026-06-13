@@ -8,7 +8,7 @@ namespace WorldCupStats.WinForms
 {
     public partial class MainForm : Form
     {
-        // Later course work: drag and drop, multi-select moves, default player image, rankings, print.
+        // Later course work: drag and drop, multi-select moves, rankings, print.
 
         private readonly FavoriteTeamService _favoriteTeamService = new();
         private readonly WorldCupDataService _worldCupData = new();
@@ -192,12 +192,9 @@ namespace WorldCupStats.WinForms
             PlayerUserControl tile = new PlayerUserControl();
             tile.SetPlayer(player, isFavorite);
 
-            // 2. Load saved player image if it exists.
-            string? imagePath = _playerImageService.GetPlayerImagePath(fifaCode, player);
-            if (imagePath != null)
-            {
-                tile.SetImage(imagePath);
-            }
+            // 2. Load saved player image, or the shared default image.
+            string imagePath = _playerImageService.GetPlayerImagePathOrDefault(fifaCode, player);
+            tile.SetImage(imagePath);
 
             // 3. Attach the context menu used for favorites and pictures.
             tile.ContextMenuStrip = contextMenuPlayers;
@@ -477,7 +474,7 @@ namespace WorldCupStats.WinForms
                "Exit confirmation",
                MessageBoxButtons.OKCancel,
                MessageBoxIcon.Question,
-               MessageBoxDefaultButton.Button2);
+               MessageBoxDefaultButton.Button1);//Puts the focus on ok rather than cancel
 
             // 2. Keep the application open if the user clicks Cancel or presses Esc
             if (result != DialogResult.OK)
@@ -801,12 +798,7 @@ namespace WorldCupStats.WinForms
                     continue;
                 }
 
-                string? imagePath = _playerImageService.GetPlayerImagePath(team.FifaCode, player);
-                if (imagePath is null)
-                {
-                    continue;
-                }
-
+                string imagePath = _playerImageService.GetPlayerImagePathOrDefault(team.FifaCode, player);
                 Image? cellImage = LoadRankingImageFromFile(imagePath);
                 if (cellImage is not null)
                 {

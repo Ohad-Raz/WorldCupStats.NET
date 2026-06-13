@@ -11,7 +11,16 @@
         WindowStartupLocation="CenterOwner"
         Opacity="1"
         Loaded="Window_Loaded">
-    <Grid Margin="20">
+    <Grid x:Name="mainContent"
+      Margin="20"
+      RenderTransformOrigin="0.5,0.5">
+
+        <Grid.RenderTransform>
+            <ScaleTransform x:Name="contentScale"
+                        ScaleX="1"
+                        ScaleY="1"/>
+        </Grid.RenderTransform>
+        <Grid Margin="20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="140"/>
             <ColumnDefinition Width="*"/>
@@ -24,7 +33,7 @@
                 BorderThickness="1"
                 VerticalAlignment="Top">
             <Image x:Name="imgPlayer"
-                   Stretch="UniformToFill"/>
+                   Stretch="Fill"/>
         </Border>
 
         <Grid Grid.Column="1"
@@ -78,5 +87,6 @@
                     Margin="0,18,0,0"
                     Click="btnClose_Click"/>
         </Grid>
+    </Grid>
     </Grid>
 </Window>

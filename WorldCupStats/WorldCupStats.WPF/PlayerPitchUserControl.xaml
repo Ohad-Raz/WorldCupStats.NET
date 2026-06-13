@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="WorldCupStats.WPF.PlayerPitchUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="140"
+             Height="58"
+             Cursor="Hand">
+    <Border Background="White"
+            BorderBrush="DarkGreen"
+            BorderThickness="1"
+            CornerRadius="6"
+            Padding="4">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="44"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Width="40"
+                    Height="48"
+                    BorderBrush="LightGray"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                <Image x:Name="imgPlayer"
+                       Stretch="UniformToFill"/>
+            </Border>
+
+            <StackPanel Grid.Column="1"
+                        Margin="7,0,0,0"
+                        VerticalAlignment="Center">
+                <TextBlock x:Name="txtPlayerName"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"/>
+
+                <TextBlock x:Name="txtShirtNumber"
+                           FontSize="10"
+                           TextAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

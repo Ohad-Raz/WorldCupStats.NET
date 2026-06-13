@@ -2,6 +2,7 @@
 
 namespace WorldCupStats.Data.Models
 {
+   
     public class Match
     {
         [JsonPropertyName("datetime")]

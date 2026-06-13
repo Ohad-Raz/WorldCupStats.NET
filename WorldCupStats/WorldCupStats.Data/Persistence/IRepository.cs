@@ -8,11 +8,9 @@ namespace WorldCupStats.Data.Persistence
 {
     public interface IRepository
     {
-        // True when this path points to an existing file.
-        bool Exists(string relativePath);
-        // Writes UTF-8 text and replaces the file if it already exists.
-        void WriteAllText(string relativePath, string content);
-        // Reads the whole file as one string.
-        string ReadAllText(string relativePath);
+        // Path may be absolute (shared user data) or relative to SharedUserDataRoot.
+        bool Exists(string path);
+        void WriteAllText(string path, string content);
+        string ReadAllText(string path);
     }
 }

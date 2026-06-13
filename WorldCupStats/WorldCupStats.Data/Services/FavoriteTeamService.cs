@@ -8,17 +8,17 @@ namespace WorldCupStats.Data.Services
 
         public void SaveFavoriteTeam(string fifaCode)
         {
-            _repo.WriteAllText(AppPaths.FavoriteTeamFile, fifaCode);
+            _repo.WriteAllText(AppPaths.FavoriteTeamFilePath, fifaCode);
         }
 
         public string? LoadFavoriteTeam()
         {
-            if (!_repo.Exists(AppPaths.FavoriteTeamFile))
+            if (!_repo.Exists(AppPaths.FavoriteTeamFilePath))
             {
                 return null;
             }
 
-            return _repo.ReadAllText(AppPaths.FavoriteTeamFile).Trim();
+            return _repo.ReadAllText(AppPaths.FavoriteTeamFilePath).Trim();
         }
     }
 }

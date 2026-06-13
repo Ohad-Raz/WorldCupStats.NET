@@ -1,4 +1,4 @@
-﻿using WorldCupStats.Data.Models;
+using WorldCupStats.Data.Models;
 using WorldCupStats.Data.Persistence;
 
 namespace WorldCupStats.Data.Services
@@ -12,17 +12,15 @@ namespace WorldCupStats.Data.Services
             return $"{safeName}_{player.ShirtNumber}{extension}";
         }
 
-        // Builds the full saved image path for a player.
+        // Builds the full saved image path for a player in shared user storage.
         private string BuildPlayerImagePath(string fifaCode, Player player, string extension)
         {
-            string folderRelativePath = AppPaths.PlayerImagesRelative(fifaCode);
+            string folderFullPath = AppPaths.SharedPlayerImagesFolder(fifaCode);
             string fileName = BuildPlayerImageFileName(player, extension);
-            string relativePath = Path.Combine(folderRelativePath, fileName);
-
-            return AppPaths.Resolve(relativePath);
+            return Path.Combine(folderFullPath, fileName);
         }
 
-        // Copies the selected image into the app Assets folder and returns the saved full path.
+        // Copies the selected image into shared Assets and returns the saved full path.
         public string SavePlayerImage(string fifaCode, Player player, string sourceImagePath)
         {
             string extension = Path.GetExtension(sourceImagePath);
@@ -39,11 +37,10 @@ namespace WorldCupStats.Data.Services
             return fullPath;
         }
 
-        // Finds an existing player image if one was already saved.
+        // Finds an existing player image in shared storage if one was already saved.
         public string? GetPlayerImagePath(string fifaCode, Player player)
         {
-            string folderRelativePath = AppPaths.PlayerImagesRelative(fifaCode);
-            string folderFullPath = AppPaths.Resolve(folderRelativePath);
+            string folderFullPath = AppPaths.SharedPlayerImagesFolder(fifaCode);
 
             if (!Directory.Exists(folderFullPath))
             {
@@ -61,6 +58,25 @@ namespace WorldCupStats.Data.Services
             }
 
             return files[0];
+        }
+
+        // Returns the shared default player image path (bootstrapped from bundled asset on first use).
+        public string GetDefaultPlayerImagePath()
+        {
+            return AppPaths.DefaultPlayerImagePath;
+        }
+
+        // Returns a saved player image path, or the shared default when none exists.
+        public string GetPlayerImagePathOrDefault(string fifaCode, Player player)
+        {
+            string? savedImagePath = GetPlayerImagePath(fifaCode, player);
+
+            if (!string.IsNullOrWhiteSpace(savedImagePath) && File.Exists(savedImagePath))
+            {
+                return savedImagePath;
+            }
+
+            return GetDefaultPlayerImagePath();
         }
     }
 }
