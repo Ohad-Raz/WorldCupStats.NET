@@ -50,7 +50,18 @@ namespace WorldCupStats.WinForms
             lblPlayerRankings = new Label();
             lblMatchRankings = new Label();
             dgvPlayerRankings = new DataGridView();
+            colPlayerName = new DataGridViewTextBoxColumn();
+            colPlayerImage = new DataGridViewImageColumn();
+            colPlayerShirtNumber = new DataGridViewTextBoxColumn();
+            colPlayerPosition = new DataGridViewTextBoxColumn();
+            colPlayerAppearances = new DataGridViewTextBoxColumn();
+            colPlayerGoals = new DataGridViewTextBoxColumn();
+            colPlayerYellowCards = new DataGridViewTextBoxColumn();
             dgvMatchRankings = new DataGridView();
+            colMatchLocation = new DataGridViewTextBoxColumn();
+            colMatchAttendance = new DataGridViewTextBoxColumn();
+            colMatchHomeTeam = new DataGridViewTextBoxColumn();
+            colMatchAwayTeam = new DataGridViewTextBoxColumn();
             panelRankingButtons = new Panel();
             btnPageSetupRankings = new Button();
             btnPreviewRankings = new Button();
@@ -294,31 +305,144 @@ namespace WorldCupStats.WinForms
             // 
             // dgvPlayerRankings
             // 
-            dgvPlayerRankings.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvPlayerRankings.AllowUserToAddRows = false;
+            dgvPlayerRankings.AllowUserToDeleteRows = false;
             dgvPlayerRankings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvPlayerRankings.Columns.AddRange(new DataGridViewColumn[] { colPlayerName, colPlayerImage, colPlayerShirtNumber, colPlayerPosition, colPlayerAppearances, colPlayerGoals, colPlayerYellowCards });
             dgvPlayerRankings.Dock = DockStyle.Fill;
             dgvPlayerRankings.Location = new Point(3, 24);
             dgvPlayerRankings.Margin = new Padding(3, 0, 3, 3);
             dgvPlayerRankings.Name = "dgvPlayerRankings";
             dgvPlayerRankings.ReadOnly = true;
+            dgvPlayerRankings.RowHeadersVisible = false;
             dgvPlayerRankings.RowHeadersWidth = 51;
+            dgvPlayerRankings.RowTemplate.Height = 55;
             dgvPlayerRankings.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvPlayerRankings.Size = new Size(690, 559);
             dgvPlayerRankings.TabIndex = 2;
+            dgvPlayerRankings.DataBindingComplete += dgvPlayerRankings_DataBindingComplete;
+            // 
+            // colPlayerName
+            // 
+            colPlayerName.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colPlayerName.DataPropertyName = "Name";
+            colPlayerName.HeaderText = "Name";
+            colPlayerName.MinimumWidth = 100;
+            colPlayerName.Name = "colPlayerName";
+            colPlayerName.ReadOnly = true;
+            // 
+            // colPlayerImage
+            // 
+            colPlayerImage.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colPlayerImage.HeaderText = "Picture";
+            colPlayerImage.ImageLayout = DataGridViewImageCellLayout.Zoom;
+            colPlayerImage.MinimumWidth = 70;
+            colPlayerImage.Name = "colPlayerImage";
+            colPlayerImage.ReadOnly = true;
+            colPlayerImage.Width = 70;
+            // 
+            // colPlayerShirtNumber
+            // 
+            colPlayerShirtNumber.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colPlayerShirtNumber.DataPropertyName = "ShirtNumber";
+            colPlayerShirtNumber.HeaderText = "Shirt number";
+            colPlayerShirtNumber.MinimumWidth = 90;
+            colPlayerShirtNumber.Name = "colPlayerShirtNumber";
+            colPlayerShirtNumber.ReadOnly = true;
+            colPlayerShirtNumber.Width = 90;
+            // 
+            // colPlayerPosition
+            // 
+            colPlayerPosition.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colPlayerPosition.DataPropertyName = "Position";
+            colPlayerPosition.HeaderText = "Position";
+            colPlayerPosition.MinimumWidth = 80;
+            colPlayerPosition.Name = "colPlayerPosition";
+            colPlayerPosition.ReadOnly = true;
+            // 
+            // colPlayerAppearances
+            // 
+            colPlayerAppearances.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colPlayerAppearances.DataPropertyName = "Appearances";
+            colPlayerAppearances.HeaderText = "Appearances";
+            colPlayerAppearances.MinimumWidth = 90;
+            colPlayerAppearances.Name = "colPlayerAppearances";
+            colPlayerAppearances.ReadOnly = true;
+            colPlayerAppearances.Width = 90;
+            // 
+            // colPlayerGoals
+            // 
+            colPlayerGoals.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colPlayerGoals.DataPropertyName = "Goals";
+            colPlayerGoals.HeaderText = "Goals";
+            colPlayerGoals.MinimumWidth = 60;
+            colPlayerGoals.Name = "colPlayerGoals";
+            colPlayerGoals.ReadOnly = true;
+            colPlayerGoals.Width = 60;
+            // 
+            // colPlayerYellowCards
+            // 
+            colPlayerYellowCards.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colPlayerYellowCards.DataPropertyName = "YellowCards";
+            colPlayerYellowCards.HeaderText = "Yellow cards";
+            colPlayerYellowCards.MinimumWidth = 90;
+            colPlayerYellowCards.Name = "colPlayerYellowCards";
+            colPlayerYellowCards.ReadOnly = true;
+            colPlayerYellowCards.Width = 90;
             // 
             // dgvMatchRankings
             // 
-            dgvMatchRankings.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvMatchRankings.AllowUserToAddRows = false;
+            dgvMatchRankings.AllowUserToDeleteRows = false;
             dgvMatchRankings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvMatchRankings.Columns.AddRange(new DataGridViewColumn[] { colMatchLocation, colMatchAttendance, colMatchHomeTeam, colMatchAwayTeam });
             dgvMatchRankings.Dock = DockStyle.Fill;
             dgvMatchRankings.Location = new Point(699, 24);
             dgvMatchRankings.Margin = new Padding(3, 0, 3, 3);
             dgvMatchRankings.Name = "dgvMatchRankings";
             dgvMatchRankings.ReadOnly = true;
+            dgvMatchRankings.RowHeadersVisible = false;
             dgvMatchRankings.RowHeadersWidth = 51;
             dgvMatchRankings.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvMatchRankings.Size = new Size(459, 559);
             dgvMatchRankings.TabIndex = 3;
+            // 
+            // colMatchLocation
+            // 
+            colMatchLocation.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colMatchLocation.DataPropertyName = "Location";
+            colMatchLocation.HeaderText = "Location";
+            colMatchLocation.MinimumWidth = 100;
+            colMatchLocation.Name = "colMatchLocation";
+            colMatchLocation.ReadOnly = true;
+            // 
+            // colMatchAttendance
+            // 
+            colMatchAttendance.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colMatchAttendance.DataPropertyName = "Attendance";
+            colMatchAttendance.HeaderText = "Attendance";
+            colMatchAttendance.MinimumWidth = 90;
+            colMatchAttendance.Name = "colMatchAttendance";
+            colMatchAttendance.ReadOnly = true;
+            colMatchAttendance.Width = 90;
+            // 
+            // colMatchHomeTeam
+            // 
+            colMatchHomeTeam.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colMatchHomeTeam.DataPropertyName = "HomeTeam";
+            colMatchHomeTeam.HeaderText = "Home team";
+            colMatchHomeTeam.MinimumWidth = 80;
+            colMatchHomeTeam.Name = "colMatchHomeTeam";
+            colMatchHomeTeam.ReadOnly = true;
+            // 
+            // colMatchAwayTeam
+            // 
+            colMatchAwayTeam.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colMatchAwayTeam.DataPropertyName = "AwayTeam";
+            colMatchAwayTeam.HeaderText = "Away team";
+            colMatchAwayTeam.MinimumWidth = 80;
+            colMatchAwayTeam.Name = "colMatchAwayTeam";
+            colMatchAwayTeam.ReadOnly = true;
             // 
             // panelRankingButtons
             // 
@@ -455,6 +579,17 @@ namespace WorldCupStats.WinForms
         private Label lblMatchRankings;
         private DataGridView dgvPlayerRankings;
         private DataGridView dgvMatchRankings;
+        private DataGridViewTextBoxColumn colPlayerName;
+        private DataGridViewImageColumn colPlayerImage;
+        private DataGridViewTextBoxColumn colPlayerShirtNumber;
+        private DataGridViewTextBoxColumn colPlayerPosition;
+        private DataGridViewTextBoxColumn colPlayerAppearances;
+        private DataGridViewTextBoxColumn colPlayerGoals;
+        private DataGridViewTextBoxColumn colPlayerYellowCards;
+        private DataGridViewTextBoxColumn colMatchLocation;
+        private DataGridViewTextBoxColumn colMatchAttendance;
+        private DataGridViewTextBoxColumn colMatchHomeTeam;
+        private DataGridViewTextBoxColumn colMatchAwayTeam;
         private System.Drawing.Printing.PrintDocument printDocumentRankings;
         private PrintDialog printDialogRankings;
         private PrintPreviewDialog printPreviewDialogRankings;

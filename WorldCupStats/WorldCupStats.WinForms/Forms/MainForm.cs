@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Drawing;
 using WorldCupStats.Data.Models;
 using WorldCupStats.Data.Services;
 using WorldCupStats.WinForms.Forms;
@@ -470,15 +471,16 @@ namespace WorldCupStats.WinForms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // 1. Ask the user to confirm closing the application.
+            // 1. Ask the user to confirm closing the application
             DialogResult result = MessageBox.Show(
-                "Are you sure you want to exit?",
-                "Exit confirmation",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+               "Are you sure you want to exit?",
+               "Exit confirmation",
+               MessageBoxButtons.OKCancel,
+               MessageBoxIcon.Question,
+               MessageBoxDefaultButton.Button2);
 
-            // 2. If the user chooses No, cancel the closing event.
-            if (result == DialogResult.No)
+            // 2. Keep the application open if the user clicks Cancel or presses Esc
+            if (result != DialogResult.OK)
             {
                 e.Cancel = true;
             }
@@ -526,6 +528,7 @@ namespace WorldCupStats.WinForms
                     dialog.FileName);
 
                 tile.SetImage(savedImagePath);
+                RebuildRankingGrids();
             }
         }
 
@@ -577,7 +580,7 @@ namespace WorldCupStats.WinForms
         }
 
         // Starts dragging a player tile when Ctrl is not held.
-        private void PlayerTile_MouseDown(object sender, MouseEventArgs e)
+        private void PlayerTile_MouseDown(object? sender, MouseEventArgs e)
         {
             // 1. Only left mouse button can start drag.
             if (e.Button != MouseButtons.Left)
@@ -603,7 +606,7 @@ namespace WorldCupStats.WinForms
         }
 
         // Selects or unselects a player tile for multi-move.
-        private void PlayerTile_Click(object sender, EventArgs e)
+        private void PlayerTile_Click(object? sender, EventArgs e)
         {
             // 1. Multi-select only happens when Ctrl is held fixed my drag and drop conflict:)
             if ((ModifierKeys & Keys.Control) != Keys.Control)
@@ -702,6 +705,7 @@ namespace WorldCupStats.WinForms
             Team? team = (Team?)cbFavoriteTeam.SelectedItem;
             if (team is null || _matches is null)
             {
+                DisposeRankingGridImages();
                 dgvPlayerRankings.DataSource = null;
                 dgvMatchRankings.DataSource = null;
                 return;
@@ -716,16 +720,99 @@ namespace WorldCupStats.WinForms
             List<MatchRanking> matchRankings = _rankingService.GetMatchRankings(_matches);
 
             // 4. Bind rankings to the grids.
+            DisposeRankingGridImages();
             dgvPlayerRankings.DataSource = null;
             dgvPlayerRankings.DataSource = playerRankings;
+            FillPlayerRankingImages(team);
 
-            // Hide technical image path column from the table and print output.
-            if (dgvPlayerRankings.Columns["ImagePath"] != null)
-            {
-                dgvPlayerRankings.Columns["ImagePath"].Visible = false;
-            }
             dgvMatchRankings.DataSource = null;
             dgvMatchRankings.DataSource = matchRankings;
+        }
+
+        // Disposes images previously assigned to player ranking picture cells.
+        private void DisposeRankingGridImages()
+        {
+            foreach (DataGridViewRow row in dgvPlayerRankings.Rows)
+            {
+                if (row.IsNewRow)
+                {
+                    continue;
+                }
+
+                object? cellValue = row.Cells[colPlayerImage.Index].Value;
+                if (cellValue is Image image)
+                {
+                    row.Cells[colPlayerImage.Index].Value = null;
+                    image.Dispose();
+                }
+            }
+        }
+
+        // Loads a player image for ranking cells without locking the source file.
+        private Image? LoadRankingImageFromFile(string imagePath)
+        {
+            if (!File.Exists(imagePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                byte[] imageBytes = File.ReadAllBytes(imagePath);
+                using MemoryStream memoryStream = new MemoryStream(imageBytes);
+                using Image loadedImage = Image.FromStream(memoryStream);
+                return new Bitmap(loadedImage);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Fills the Picture column after player rankings are bound.
+        private void FillPlayerRankingImages(Team team)
+        {
+            if (_matches is null)
+            {
+                return;
+            }
+
+            List<Player> roster = _matchPlayerService.GetPlayersFromFirstMatch(_matches, team.FifaCode);
+            int pictureColumnIndex = colPlayerImage.Index;
+
+            foreach (DataGridViewRow row in dgvPlayerRankings.Rows)
+            {
+                if (row.IsNewRow)
+                {
+                    continue;
+                }
+
+                if (row.DataBoundItem is not PlayerRanking ranking)
+                {
+                    continue;
+                }
+
+                Player? player = roster.FirstOrDefault(
+                    rosterPlayer => rosterPlayer.Name == ranking.Name &&
+                                    rosterPlayer.ShirtNumber == ranking.ShirtNumber);
+
+                if (player is null)
+                {
+                    continue;
+                }
+
+                string? imagePath = _playerImageService.GetPlayerImagePath(team.FifaCode, player);
+                if (imagePath is null)
+                {
+                    continue;
+                }
+
+                Image? cellImage = LoadRankingImageFromFile(imagePath);
+                if (cellImage is not null)
+                {
+                    row.Cells[pictureColumnIndex].Value = cellImage;
+                }
+            }
         }
 
         // Opens page setup for the rankings print document.
@@ -834,7 +921,8 @@ namespace WorldCupStats.WinForms
             Brush brush = Brushes.Black;
             Pen pen = Pens.Black;
 
-            int rowHeight = 25;
+            int headerHeight = 25;
+            int rowHeight = grid == dgvPlayerRankings ? 55 : 25;
 
             List<DataGridViewColumn> visibleColumns = new List<DataGridViewColumn>();
 
@@ -862,13 +950,13 @@ namespace WorldCupStats.WinForms
 
             foreach (DataGridViewColumn column in visibleColumns)
             {
-                Rectangle headerRectangle = new Rectangle(currentX, y, columnWidth, rowHeight);
+                Rectangle headerRectangle = new Rectangle(currentX, y, columnWidth, headerHeight);
                 graphics.DrawRectangle(pen, headerRectangle);
                 graphics.DrawString(column.HeaderText, headerFont, brush, headerRectangle);
                 currentX += columnWidth;
             }
 
-            y += rowHeight;
+            y += headerHeight;
 
             // Print rows until the page is full.
             while (rowIndex < grid.Rows.Count)
@@ -891,11 +979,18 @@ namespace WorldCupStats.WinForms
                 foreach (DataGridViewColumn column in visibleColumns)
                 {
                     object? value = row.Cells[column.Index].Value;
-                    string text = value?.ToString() ?? string.Empty;
-
                     Rectangle cellRectangle = new Rectangle(currentX, y, columnWidth, rowHeight);
                     graphics.DrawRectangle(pen, cellRectangle);
-                    graphics.DrawString(text, rowFont, brush, cellRectangle);
+
+                    if (column is DataGridViewImageColumn && value is Image image)
+                    {
+                        DrawCenteredImage(graphics, image, cellRectangle);
+                    }
+                    else
+                    {
+                        string text = value?.ToString() ?? string.Empty;
+                        graphics.DrawString(text, rowFont, brush, cellRectangle);
+                    }
 
                     currentX += columnWidth;
                 }
@@ -908,11 +1003,55 @@ namespace WorldCupStats.WinForms
             return true;
         }
 
+        // Draws an image centered inside a cell while preserving proportions.
+        private static void DrawCenteredImage(Graphics graphics, Image image, Rectangle cellRectangle)
+        {
+            float imageAspect = (float)image.Width / image.Height;
+            float cellAspect = (float)cellRectangle.Width / cellRectangle.Height;
+            Rectangle drawRectangle;
+
+            if (imageAspect > cellAspect)
+            {
+                int drawHeight = (int)(cellRectangle.Width / imageAspect);
+                drawRectangle = new Rectangle(
+                    cellRectangle.X,
+                    cellRectangle.Y + ((cellRectangle.Height - drawHeight) / 2),
+                    cellRectangle.Width,
+                    drawHeight);
+            }
+            else
+            {
+                int drawWidth = (int)(cellRectangle.Height * imageAspect);
+                drawRectangle = new Rectangle(
+                    cellRectangle.X + ((cellRectangle.Width - drawWidth) / 2),
+                    cellRectangle.Y,
+                    drawWidth,
+                    cellRectangle.Height);
+            }
+
+            graphics.DrawImage(image, drawRectangle);
+        }
+
         private void printDocumentRankings_EndPrint(object sender, System.Drawing.Printing.PrintEventArgs e)
         {
             _printPlayerRowIndex = 0;
             _printMatchRowIndex = 0;
             _printingPlayers = true;
+        }
+
+        // Fills player pictures after the ranking grid finishes binding its rows.
+        private void dgvPlayerRankings_DataBindingComplete(
+            object? sender,
+            DataGridViewBindingCompleteEventArgs e)
+        {
+            Team? team = cbFavoriteTeam.SelectedItem as Team;
+
+            if (team is null)
+            {
+                return;
+            }
+
+            FillPlayerRankingImages(team);
         }
     }
 }
