@@ -24,7 +24,7 @@ namespace WorldCupStats.WPF
             ShowPlayerDetails(player, goals, yellowCards, imagePath);
         }
 
-        // Shows player information in the details window.
+        // Shows player information in the details window
         private void ShowPlayerDetails(
             Player player,
             int goals,
@@ -48,8 +48,7 @@ namespace WorldCupStats.WPF
             }
         }
 
-        // Plays a short animation when the player details window opens.
-        // Plays a short scale animation when the player details window opens.
+        // Plays a short scale animation when the player details window opens
         private void Window_Loaded(
             object sender,
             RoutedEventArgs e)
@@ -78,7 +77,7 @@ namespace WorldCupStats.WPF
                 scaleAnimation);
         }
 
-        // Closes the player details window.
+        // Closes the player details window
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             Close();

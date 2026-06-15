@@ -13,13 +13,13 @@ namespace WorldCupStats.WinForms
             InitializeComponent();
         }
 
-        // Last player passed to SetPlayer. Used for context menus and later for drag and drop.
+        // Player stored on the tile for context menus and drag and drop
         public Player? BoundPlayer => _player;
 
-        // Fills the labels from the player and shows a star when marked favorite.
+        // Fills the labels from the player and shows a star when marked favorite
         public void SetPlayer(Player player, bool isFavorite)
         {
-            // 1. Remember the model for later features such as context menus
+            // 1. Store the player for context menus and drag and drop
             _player = player;
 
             // 2. Copy simple fields onto the labels
@@ -32,12 +32,12 @@ namespace WorldCupStats.WinForms
             SetFavorite(isFavorite);
         }
 
-        // Updates only the favorite star label.
+        // Updates only the favorite star label
         public void SetFavorite(bool isFavorite)
         {
             lblFavoriteStar.Text = isFavorite ? "\u2605" : string.Empty;
         }
-        // Shows the given image file, or the shared default player image when missing.
+        // Shows the player image, or the default image when missing
         public void SetImage(string? imagePath)
         {
             string resolvedPath = imagePath ?? string.Empty;
@@ -52,13 +52,13 @@ namespace WorldCupStats.WinForms
                 pbPlayerImage.ImageLocation = resolvedPath;
             }
         }
-        // Changes whether this player tile is visually selected for multi-move.
+        // Changes whether this player tile is visually selected for multi-move
         public void SetSelectedForMove(bool isSelected)
         {
-            // 1. Save selected state.
+            // 1. Save selected state
             IsSelectedForMove = isSelected;
 
-            // 2. Show selected state visually.
+            // 2. Show selected state visually
             if (isSelected)
             {
                 BackColor = Color.LightBlue;

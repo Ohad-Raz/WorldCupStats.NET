@@ -8,5 +8,4 @@ public class PlayerRanking
     public int Appearances { get; set; }
     public int Goals { get; set; }
     public int YellowCards { get; set; }
-    public string? ImagePath { get; set; }
 }

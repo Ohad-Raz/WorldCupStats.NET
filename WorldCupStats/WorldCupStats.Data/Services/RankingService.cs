@@ -4,12 +4,12 @@ namespace WorldCupStats.Data.Services
 {
     public class RankingService
     {
-        // Builds match rankings ordered by attendance from highest to lowest.
+        // Builds match rankings ordered by attendance from highest to lowest
         public List<MatchRanking> GetMatchRankings(List<Match> matches)
         {
             List<MatchRanking> rankings = new List<MatchRanking>();
 
-            // 1. Create one ranking row for each match.
+            // 1. Create one ranking row for each match
             foreach (Match match in matches)
             {
                 int attendance = 0;
@@ -26,18 +26,18 @@ namespace WorldCupStats.Data.Services
                 rankings.Add(ranking);
             }
 
-            // 2. Return matches ordered by attendance, highest first.
+            // 2. Return matches ordered by attendance, highest first
             return rankings
                 .OrderByDescending(ranking => ranking.Attendance)
                 .ToList();
         }
 
-        // Builds player rankings for the selected team.
+        // Builds player rankings for the selected team
         public List<PlayerRanking> GetPlayerRankings(List<Match> matches, string fifaCode)
         {
             List<PlayerRanking> rankings = new List<PlayerRanking>();
 
-            // 1. Go through each match of the selected team.
+            // 1. Go through each match of the selected team
             foreach (Match match in matches)
             {
                 TeamStatistics? statistics = GetTeamStatisticsForMatch(match, fifaCode);
@@ -46,7 +46,7 @@ namespace WorldCupStats.Data.Services
                     continue;
                 }
 
-                // 2. Combine starting eleven and substitutes.
+                // 2. Combine starting eleven and substitutes
                 List<Player> players = new List<Player>();
 
                 if (statistics.StartingEleven != null)
@@ -59,10 +59,10 @@ namespace WorldCupStats.Data.Services
                     players.AddRange(statistics.Substitutes);
                 }
 
-                // 3. Get events for this team in this match.
+                // 3. Get events for this team in this match
                 List<MatchEvent> events = GetTeamEventsForMatch(match, fifaCode);
 
-                // 4. Update ranking row for each player.
+                // 4. Update ranking row for each player
                 foreach (Player player in players)
                 {
                     PlayerRanking? ranking = rankings.FirstOrDefault(
@@ -90,22 +90,22 @@ namespace WorldCupStats.Data.Services
                 }
             }
 
-            // 5. Return ordered rankings: goals first, then yellow cards, then appearances.
+            // 5. Return ordered rankings: goals first, then yellow cards, then appearances
             return rankings
                 .OrderByDescending(ranking => ranking.Goals)
                 .ThenByDescending(ranking => ranking.YellowCards)
                 .ThenByDescending(ranking => ranking.Appearances)
                 .ToList();
         }
-        // Counts how many matching events belong to one player.
+        // Counts how many matching events belong to one player
         private int CountPlayerEvents(List<MatchEvent> events, string playerName, string eventNamePart)
         {
             int count = 0;
 
-            // 1. Loop through team events.
+            // 1. Loop through team events
             foreach (MatchEvent matchEvent in events)
             {
-                // 2. Count event only when player name and event type match.
+                // 2. Count event only when player name and event type match
                 if (matchEvent.Player == playerName &&
                     matchEvent.TypeOfEvent.Contains(eventNamePart))
                 {
@@ -115,40 +115,40 @@ namespace WorldCupStats.Data.Services
 
             return count;
         }
-        // Gets the statistics object for the selected team in one match.
+        // Gets the statistics object for the selected team in one match
         private TeamStatistics? GetTeamStatisticsForMatch(Match match, string fifaCode)
         {
-            // 1. Check if the selected team is the home team.
+            // 1. Check if the selected team is the home team
             if (match.HomeTeam?.Code == fifaCode)
             {
                 return match.HomeTeamStatistics;
             }
 
-            // 2. Check if the selected team is the away team.
+            // 2. Check if the selected team is the away team
             if (match.AwayTeam?.Code == fifaCode)
             {
                 return match.AwayTeamStatistics;
             }
 
-            // 3. Return null if this match does not belong to the selected team.
+            // 3. Return null if this match does not belong to the selected team
             return null;
         }
-        // Gets the event list for the selected team in one match.
+        // Gets the event list for the selected team in one match
         private List<MatchEvent> GetTeamEventsForMatch(Match match, string fifaCode)
         {
-            // 1. If the selected team is home, return home events.
+            // 1. If the selected team is home, return home events
             if (match.HomeTeam?.Code == fifaCode)
             {
                 return match.HomeTeamEvents ?? new List<MatchEvent>();
             }
 
-            // 2. If the selected team is away, return away events.
+            // 2. If the selected team is away, return away events
             if (match.AwayTeam?.Code == fifaCode)
             {
                 return match.AwayTeamEvents ?? new List<MatchEvent>();
             }
 
-            // 3. If the match is unrelated, return an empty list.
+            // 3. If the match is unrelated, return an empty list
             return new List<MatchEvent>();
         }
     }

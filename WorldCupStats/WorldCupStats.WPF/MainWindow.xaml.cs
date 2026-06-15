@@ -1,14 +1,9 @@
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using WorldCupStats.Data.Models;
 using WorldCupStats.Data.Services;
 
@@ -38,15 +33,15 @@ namespace WorldCupStats.WPF
         {
             InitializeComponent();
         }
-        // Loads settings, teams, favorite team, and opponents when the WPF window opens.
+        // Loads settings, teams, favorite team, and opponents when the WPF window opens
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                // 1. Load shared settings from the Data layer.
+                // 1. Load saved settings
                 _settings = _settingsService.Load();
 
-                // 2. If settings are missing, open WPF settings window.
+                // 2. If settings are missing, open WPF settings window
                 if (_settings is null)
                 {
                     SettingsWindow settingsWindow = new SettingsWindow();
@@ -63,10 +58,10 @@ namespace WorldCupStats.WPF
                     _settingsService.Save(_settings);
                 }
 
-                // 3. Apply display settings before loading application data.
+                // 3. Apply display settings before loading application data
                 ApplyDisplaySettings();
 
-                // 4. Show loading while teams and matches are retrieved.
+                // 4. Show loading while data loads
                 ShowLoading();
 
                 await ReloadTeamsAsync();
@@ -80,8 +75,7 @@ namespace WorldCupStats.WPF
                 HideLoading();
             }
         }
-        // Opens the settings window and reloads WPF data after changes.
-        // Opens the settings window and reloads WPF data after changes.
+        // Opens the settings window and reloads WPF data after changes
         private async void btnSettings_Click(
             object sender,
             RoutedEventArgs e)
@@ -117,7 +111,7 @@ namespace WorldCupStats.WPF
                 HideLoading();
             }
         }
-        // Reloads teams, restores favorite team if possible, and reloads opponents.
+        // Reloads teams, restores favorite team if possible, and reloads opponents
         private async Task ReloadTeamsAsync()
         {
             if (_settings is null)
@@ -125,15 +119,15 @@ namespace WorldCupStats.WPF
                 return;
             }
 
-            // 1. Load teams.
+            // 1. Load teams
             _teams = await _worldCupDataService.GetTeamsAsync(_settings);
 
-            // 2. Bind favorite team ComboBox.
+            // 2. Bind favorite team ComboBox
             cmbFavoriteTeam.ItemsSource = null;
             cmbFavoriteTeam.ItemsSource = _teams;
             cmbFavoriteTeam.DisplayMemberPath = nameof(Team.DisplayName);
 
-            // 3. Try restoring saved favorite team.
+            // 3. Try restoring saved favorite team
             string? favoriteTeamCode = _favoriteTeamService.LoadFavoriteTeam();
             Team? favoriteTeam = null;
 
@@ -154,7 +148,7 @@ namespace WorldCupStats.WPF
                 lblMatchResult.Text = "Select favorite team and opponent to show result";
             }
         }
-        // Loads matches for the selected favorite team and fills the opponent ComboBox.
+        // Loads matches for the selected favorite team and fills the opponent ComboBox
         private async Task LoadMatchesAndOpponentsAsync(Team selectedTeam)
         {
             if (_settings is null)
@@ -162,12 +156,12 @@ namespace WorldCupStats.WPF
                 return;
             }
 
-            // 1. Load matches for the selected team.
+            // 1. Load matches for the selected team
             _favoriteTeamMatches = await _worldCupDataService.GetMatchesByFifaCodeAsync(
                 _settings,
                 selectedTeam.FifaCode);
 
-            // 2. Build opponent list from those matches.
+            // 2. Build opponent list from those matches
             List<Team> opponents = new List<Team>();
 
             foreach (Match match in _favoriteTeamMatches)
@@ -189,7 +183,7 @@ namespace WorldCupStats.WPF
                 }
             }
 
-            // 3. Bind opponents to the opponent ComboBox.
+            // 3. Bind opponents to the opponent ComboBox
             cmbOpponentTeam.ItemsSource = opponents;
             cmbOpponentTeam.DisplayMemberPath = nameof(Team.DisplayName);
 
@@ -198,7 +192,7 @@ namespace WorldCupStats.WPF
                 cmbOpponentTeam.SelectedIndex = 0;
             }
         }
-        // Reloads matches and opponents when the favorite team changes in WPF.
+        // Reloads matches and opponents when favorite team changes
         private async void cmbFavoriteTeam_SelectionChanged(
             object sender,
             SelectionChangedEventArgs e)
@@ -236,10 +230,10 @@ namespace WorldCupStats.WPF
             }
         }
 
-        // Shows the selected match result when the opponent changes.
+        // Shows the selected match result when the opponent changes
         private void cmbOpponentTeam_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // 1. Get selected favorite team and opponent.
+            // 1. Get selected favorite team and opponent
             Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
             Team? opponentTeam = cmbOpponentTeam.SelectedItem as Team;
 
@@ -249,7 +243,7 @@ namespace WorldCupStats.WPF
                 return;
             }
 
-            // 2. Find the match between these two teams.
+            // 2. Find the match between these two teams
             Match? selectedMatch = null;
 
             foreach (Match match in _favoriteTeamMatches)
@@ -275,13 +269,13 @@ namespace WorldCupStats.WPF
                 return;
             }
 
-            // 3. Show result in home-away order.
+            // 3. Show result in home-away order
             lblMatchResult.Text =
                 $"{selectedMatch.HomeTeam?.Country} {selectedMatch.HomeTeam?.Goals} : " +
                 $"{selectedMatch.AwayTeam?.Goals} {selectedMatch.AwayTeam?.Country}";
             DrawStartingElevenOnPitch();
         }
-        // Opens details for the selected favorite team.
+        // Opens details for the selected favorite team
         private void btnFavoriteTeamDetails_Click(object sender, RoutedEventArgs e)
         {
             Team? team = cmbFavoriteTeam.SelectedItem as Team;
@@ -297,7 +291,7 @@ namespace WorldCupStats.WPF
             window.ShowDialog();
         }
 
-        // Opens details for the selected opponent team.
+        // Opens details for the selected opponent team
         private void btnOpponentTeamDetails_Click(object sender, RoutedEventArgs e)
         {
             Team? team = cmbOpponentTeam.SelectedItem as Team;
@@ -312,7 +306,7 @@ namespace WorldCupStats.WPF
             window.Owner = this;
             window.ShowDialog();
         }
-        // Finds the match between the selected favorite team and selected opponent.
+        // Finds the match between the selected favorite team and selected opponent
         private Match? GetSelectedMatch()
         {
             Team? favoriteTeam = cmbFavoriteTeam.SelectedItem as Team;
@@ -341,7 +335,7 @@ namespace WorldCupStats.WPF
 
             return null;
         }
-        // Gets the match statistics for a specific team.
+        // Gets the match statistics for a specific team
         private TeamStatistics? GetTeamStatistics(
             Match match,
             string fifaCode)
@@ -358,13 +352,13 @@ namespace WorldCupStats.WPF
 
             return null;
         }
-        // Draws both starting elevens on opposite halves of the pitch.
+        // Draws both starting elevens on opposite halves of the pitch
         private void DrawStartingElevenOnPitch()
         {
-            // 1. Clear previously drawn player controls.
+            // 1. Clear previously drawn player controls
             pitchCanvas.Children.Clear();
 
-            // 2. Get selected teams and match.
+            // 2. Get selected teams and match
             Team? favoriteTeam =
                 cmbFavoriteTeam.SelectedItem as Team;
 
@@ -380,7 +374,7 @@ namespace WorldCupStats.WPF
                 return;
             }
 
-            // 3. Get statistics for both teams.
+            // 3. Get statistics for both teams
             TeamStatistics? favoriteStatistics =
                 GetTeamStatistics(
                     match,
@@ -391,7 +385,7 @@ namespace WorldCupStats.WPF
                     match,
                     opponentTeam.FifaCode);
 
-            // 4. Draw favorite team on the left half.
+            // 4. Draw favorite team on the left half
             if (favoriteStatistics?.StartingEleven is not null)
             {
                 foreach (Player player in favoriteStatistics.StartingEleven)
@@ -404,7 +398,7 @@ namespace WorldCupStats.WPF
                 }
             }
 
-            // 5. Draw opponent team on the right half.
+            // 5. Draw opponent team on the right half
             if (opponentStatistics?.StartingEleven is not null)
             {
                 foreach (Player player in opponentStatistics.StartingEleven)
@@ -417,8 +411,7 @@ namespace WorldCupStats.WPF
                 }
             }
         }
-        // Draws one reusable player control on the pitch according to position.
-        // Draws one player control on the selected side of the pitch.
+        // Draws one player control on the selected side of the pitch
         private void DrawPlayerOnPitch(
             Player player,
             string fifaCode,
@@ -454,7 +447,6 @@ namespace WorldCupStats.WPF
                     samePositionIndex,
                     samePositionCount,
                     controlHeight);
-            y = (canvasHeight - controlHeight) / 2;
             double leftGoalkeeperX = canvasWidth * 0.02;
             double leftDefenderX = canvasWidth * 0.13;
             double leftMidfieldX = canvasWidth * 0.25;
@@ -540,7 +532,7 @@ namespace WorldCupStats.WPF
 
             pitchCanvas.Children.Add(playerControl);
         }
-        // Stores layout and team information for one player control.
+        // Extra data stored on each pitch player control
         private class PitchPlayerTag
         {
             public string Position { get; set; } = string.Empty;
@@ -549,7 +541,7 @@ namespace WorldCupStats.WPF
 
             public string FifaCode { get; set; } = string.Empty;
         }
-        // Opens player details when a player control on the pitch is clicked.
+        // Opens player details when a player control on the pitch is clicked
         private void PlayerPitchControl_MouseLeftButtonUp(
             object? sender,
             MouseButtonEventArgs e)
@@ -568,7 +560,7 @@ namespace WorldCupStats.WPF
                 pitchTag.FifaCode);
         }
 
-        // Counts already drawn players with the same position on one pitch side.
+        // Counts already drawn players with the same position on one pitch side
         private int CountPlayersAlreadyDrawnInPosition(
             string position,
             PitchSide pitchSide)
@@ -588,7 +580,7 @@ namespace WorldCupStats.WPF
 
             return count;
         }
-        // Gets the event list for a specific team in the selected match.
+        // Gets the event list for a specific team in the selected match
         private List<MatchEvent> GetTeamEvents(
             Match match,
             string fifaCode)
@@ -606,7 +598,7 @@ namespace WorldCupStats.WPF
             return new List<MatchEvent>();
         }
 
-        // Counts one event type for one player in the selected match.
+        // Counts one event type for one player in the selected match
         private int CountPlayerEventsInMatch(Player player, List<MatchEvent> events, string eventNamePart)
         {
             int count = 0;
@@ -622,7 +614,7 @@ namespace WorldCupStats.WPF
 
             return count;
         }
- // Opens the player details window for a player shown on the pitch.
+        // Opens the details window for the selected player
 private void OpenPlayerDetails(
     Player player,
     string fifaCode)
@@ -664,7 +656,7 @@ private void OpenPlayerDetails(
     window.Owner = this;
     window.ShowDialog();
 }
-        // Applies WPF window mode and resolution settings.
+        // Applies WPF window mode and resolution settings
         private void ApplyDisplaySettings()
         {
             if (_settings is null)
@@ -699,7 +691,7 @@ private void OpenPlayerDetails(
                 WindowState = WindowState.Normal;
             }
         }
-        // Redraws both starting elevens when the pitch changes size.
+        // Redraws both starting elevens when the pitch changes size
         private void pitchCanvas_SizeChanged(
             object? sender,
             SizeChangedEventArgs e)
@@ -711,7 +703,7 @@ private void OpenPlayerDetails(
 
             DrawStartingElevenOnPitch();
         }
-        // Calculates a vertically centered position for one player group.
+        // Calculates a vertically centered position for one player group
         private double CalculateCenteredPlayerY(
             double canvasHeight,
             int playerIndex,
@@ -728,7 +720,7 @@ private void OpenPlayerDetails(
 
             return 20 + playerIndex * spacing;
         }
-        // Counts players with one position in a starting eleven.
+        // Counts players with one position in a starting eleven
         private static int CountPlayersInPosition(
             IEnumerable<Player> players,
             string position)
@@ -737,7 +729,7 @@ private void OpenPlayerDetails(
                 player.Position == position);
         }
 
-        // Confirms whether the user wants to close the WPF application.
+        // Confirms whether the user wants to close the WPF application
         private void Window_Closing(
             object? sender,
             System.ComponentModel.CancelEventArgs e)
@@ -754,21 +746,21 @@ private void OpenPlayerDetails(
                 e.Cancel = true;
             }
         }
-        // Shows the loading overlay and prevents repeated loading actions.
+        // Shows loading and sets _isLoading so events do not fire twice
         private void ShowLoading()
         {
             _isLoading = true;
             loadingOverlay.Visibility = Visibility.Visible;
         }
 
-        // Hides the loading overlay after loading finishes.
+        // Hides loading and clears _isLoading
         private void HideLoading()
         {
             loadingOverlay.Visibility = Visibility.Collapsed;
             _isLoading = false;
         }
 
-        // Returns the application to windowed mode when Esc is pressed in fullscreen.
+        // Returns the application to windowed mode when Esc is pressed in fullscreen
         private void Window_KeyDown(
             object? sender,
             KeyEventArgs e)

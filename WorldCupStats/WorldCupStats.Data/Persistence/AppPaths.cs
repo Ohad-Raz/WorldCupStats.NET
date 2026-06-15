@@ -67,7 +67,7 @@ namespace WorldCupStats.Data.Persistence
             Path.Combine(SharedPlayerImagesRoot, fifaCode);
 
         /// <summary>
-        /// Shared default image used by both clients after first-use bootstrap.
+        /// Default player image copied to LocalAppData on first use
         /// </summary>
         public static string DefaultPlayerImagePath
         {
@@ -77,9 +77,6 @@ namespace WorldCupStats.Data.Persistence
                 return SharedDefaultPlayerImagePath;
             }
         }
-
-        public static void EnsureSharedUserDataRootExists() =>
-            Directory.CreateDirectory(SharedDataRoot);
 
         public static void EnsureSharedDefaultPlayerImage()
         {

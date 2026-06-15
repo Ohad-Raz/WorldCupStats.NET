@@ -9,7 +9,7 @@ namespace WorldCupStats.Data.Services
 
         private static char Separator => '|';
 
-        // Stable id: FIFA_CODE|PlayerName|ShirtNumber
+        // Creates an ID using the team, player name and shirt number
         public static string MakeFavoriteId(string fifaCode, Player player)
         {
             string code = fifaCode.Trim();
@@ -23,7 +23,7 @@ namespace WorldCupStats.Data.Services
             return favoriteIds.Contains(id, StringComparer.OrdinalIgnoreCase);
         }
 
-        // Favorite ids for one national team only.
+        // Loads favorite player ids for one team
         public List<string> LoadFavoritePlayerIds(string fifaCode)
         {
             string prefix = $"{fifaCode.Trim()}{Separator}";
@@ -33,7 +33,7 @@ namespace WorldCupStats.Data.Services
                 .ToList();
         }
 
-        // Keeps favorites for other teams and replaces the set for the given FIFA code.
+        // Saves this team's favorites without removing favorites from other teams
         public void SaveFavoritePlayers(string fifaCode, IEnumerable<Player> players)
         {
             string prefix = $"{fifaCode.Trim()}{Separator}";
@@ -47,11 +47,6 @@ namespace WorldCupStats.Data.Services
 
             IEnumerable<string> allIds = keptFromOtherTeams.Concat(idsForTeam);
             _repo.WriteAllText(AppPaths.FavoritePlayersFilePath, string.Join(Environment.NewLine, allIds));
-        }
-
-        public void ClearFavoritePlayers(string fifaCode)
-        {
-            SaveFavoritePlayers(fifaCode, Array.Empty<Player>());
         }
 
         private List<string> LoadAllFavoriteIds()
@@ -71,13 +66,13 @@ namespace WorldCupStats.Data.Services
                 .ToList();
         }
 
-        // Accepts FIFA|Name|Number. Ignores legacy Name|Number lines from older builds.
+        // Checks that the favorite ID has the expected format
         private static bool IsValidFavoriteId(string line)
         {
             string[] parts = line.Split(Separator);
             return parts.Length >= 3
                 && !string.IsNullOrWhiteSpace(parts[0])
-                && int.TryParse(parts[^1], out _);
+                && int.TryParse(parts[^1], out _); // Uses the last part as the shirt number
         }
     }
 }

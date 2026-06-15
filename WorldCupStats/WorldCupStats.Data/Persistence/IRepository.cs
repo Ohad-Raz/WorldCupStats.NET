@@ -8,7 +8,7 @@ namespace WorldCupStats.Data.Persistence
 {
     public interface IRepository
     {
-        // Path may be absolute (shared user data) or relative to SharedUserDataRoot.
+        // Absolute paths pass through; relative paths go under LocalAppData
         bool Exists(string path);
         void WriteAllText(string path, string content);
         string ReadAllText(string path);

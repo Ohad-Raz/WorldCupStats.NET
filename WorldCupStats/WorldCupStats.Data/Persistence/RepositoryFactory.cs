@@ -10,7 +10,7 @@ namespace WorldCupStats.Data.Persistence
     {
         private static IRepository? repo;
 
-        // Single shared file repository for the whole app.
+        // One shared file repository for the whole app
         public static IRepository GetInstance()
         {
             repo ??= new FileRepository();           

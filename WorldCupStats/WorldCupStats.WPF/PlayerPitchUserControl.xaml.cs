@@ -14,7 +14,7 @@ namespace WorldCupStats.WPF
             InitializeComponent();
         }
 
-        // Displays one player inside the pitch control.
+        // Displays one player inside the pitch control
         public void SetPlayer(Player player, string imagePath)
         {
             BoundPlayer = player;
@@ -25,7 +25,7 @@ namespace WorldCupStats.WPF
             LoadPlayerImage(imagePath);
         }
 
-        // Loads the player image without permanently locking the file.
+        // Loads the player image without permanently locking the file
         private void LoadPlayerImage(string imagePath)
         {
             if (!File.Exists(imagePath))

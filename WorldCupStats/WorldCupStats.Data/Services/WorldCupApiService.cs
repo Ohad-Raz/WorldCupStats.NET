@@ -12,7 +12,7 @@ namespace WorldCupStats.Data.Services
     {
         private readonly HttpClient _httpClient;
 
-        // One HttpClient for all requests to the World Cup site.
+        // One HttpClient for all requests to the World Cup site
         public WorldCupApiService()
         {
             _httpClient = new HttpClient();
@@ -25,7 +25,7 @@ namespace WorldCupStats.Data.Services
 
 
 
-        // Full URL for teams/results for men or women.
+        // Full URL for teams/results for men or women
         private string GetTeamsEndpoint(ChampionshipType championship)
         {
             string gender = championship == ChampionshipType.Women ? nameof(ChampionshipType.Women) : nameof(ChampionshipType.Men);
@@ -33,7 +33,7 @@ namespace WorldCupStats.Data.Services
             return endpoint;
         }
 
-        // Fetch teams JSON and deserialize to a list of Team.
+        // Gets teams JSON from the API and converts it to a list
         public async Task<List<Team>> GetTeamsAsync(ChampionshipType championship)
         {
             string endpoint = GetTeamsEndpoint(championship);
@@ -47,7 +47,7 @@ namespace WorldCupStats.Data.Services
             return teams;
         }
 
-        // Base URL for the matches path before adding country query.
+        // Base URL for the matches path before adding country query
         private string GetMatchesByFifaCodeEndpoint(ChampionshipType championship)
         {
             string gender = championship == ChampionshipType.Women ? nameof(ChampionshipType.Women) : nameof(ChampionshipType.Men);
@@ -55,7 +55,7 @@ namespace WorldCupStats.Data.Services
             return endpoint;
         }
 
-        // Fetch matches JSON for one country and deserialize to a list of Match.
+        // Gets matches JSON for one country and converts it to a list
         public async Task<List<Match>> GetMatchesByFifaCodeAsync(ChampionshipType championship, string fifaCode)
         {
             string endpoint = GetMatchesByFifaCodeEndpoint(championship);

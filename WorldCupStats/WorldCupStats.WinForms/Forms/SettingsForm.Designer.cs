@@ -41,7 +41,6 @@ namespace WorldCupStats.WinForms.Forms
             CbChampionship.Name = "CbChampionship";
             CbChampionship.Size = new Size(151, 28);
             CbChampionship.TabIndex = 0;
-            CbChampionship.SelectedIndexChanged += CbChampionship_SelectedIndexChanged;
             // 
             // CbDataSource
             // 

@@ -17,10 +17,10 @@ namespace WorldCupStats.WPF
             LoadComboBoxes(currentSettings);
         }
 
-        // Loads enum values and display options into the settings ComboBoxes.
+        // Loads enum values and display options into the settings ComboBoxes
         private void LoadComboBoxes(AppSettings? currentSettings)
         {
-            // 1. Load all ComboBox options first.
+            // 1. Load all ComboBox options first
             cmbChampionship.ItemsSource = Enum.GetValues(typeof(ChampionshipType));
             cmbDataSource.ItemsSource = Enum.GetValues(typeof(DataSourceMode));
 
@@ -37,7 +37,7 @@ namespace WorldCupStats.WPF
                 "1280x720"
             };
 
-            // 2. Select current settings or default values.
+            // 2. Select current settings or default values
             if (currentSettings != null)
             {
                 cmbChampionship.SelectedItem = currentSettings.Championship;
@@ -54,7 +54,7 @@ namespace WorldCupStats.WPF
             }
         }
 
-        // Saves selected settings and closes the window.
+        // Saves selected settings and closes the window
         private void btnConfirm_Click(object sender, RoutedEventArgs e)
         {
             string? selectedWindowMode = cmbWindowMode.SelectedItem as string;
@@ -78,7 +78,7 @@ namespace WorldCupStats.WPF
             Close();
         }
 
-        // Closes the window without saving settings.
+        // Closes the window without saving settings
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;

@@ -8,18 +8,13 @@ namespace WorldCupStats.WinForms.Forms
     {
         public AppSettings SelectedSettings { get; set; } = null!;
 
-        // Settings dialog. Combos fill in Load.
+        // Settings dialog. Combos fill in Load
         public SettingsForm()
         {
             InitializeComponent();
         }
 
-        // Empty hook for championship combo changes.
-        private void CbChampionship_SelectedIndexChanged(object sender, EventArgs e)
-        {
-        }
-
-        // Stores choices from the two combos when user hits Confirm.
+        // Stores choices from the two combos when user hits Confirm
         private void BtnConfirm_Click(object sender, EventArgs e)
         {
             if (CbChampionship.SelectedItem is null || CbDataSource.SelectedItem is null)
@@ -34,7 +29,7 @@ namespace WorldCupStats.WinForms.Forms
             };
         }
 
-        // Fills combos and maps Enter and Esc to the buttons.
+        // Fills combos and maps Enter and Esc to the buttons
         private void SettingsForm_Load(object sender, EventArgs e)
         {
             CbChampionship.DataSource = Enum.GetValues(typeof(ChampionshipType));

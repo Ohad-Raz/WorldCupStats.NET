@@ -28,7 +28,7 @@ namespace WorldCupStats.WPF
 
             ShowTeamDetails(team);
         }
-        // Shows team statistics in the details window.
+        // Shows team statistics in the details window
         private void ShowTeamDetails(Team team)
         {
             lblTeamName.Text = team.DisplayName;
@@ -40,10 +40,10 @@ namespace WorldCupStats.WPF
             lblGoalsAgainst.Text = team.GoalsAgainst.ToString();
             lblGoalDifference.Text = team.GoalDifferential.ToString();
         }
-        // Plays a short fade-in animation when the team details window opens.
+        // Plays a short fade-in animation when the team details window opens
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Keeps the window visible in the Designer, but starts hidden at runtime.
+            // Starts at opacity 0 so the fade-in animation can play
             Opacity = 0;
             DoubleAnimation fadeAnimation = new DoubleAnimation
             {
