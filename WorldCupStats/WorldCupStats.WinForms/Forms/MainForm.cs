@@ -105,6 +105,24 @@ namespace WorldCupStats.WinForms
             return _favoriteTeamService.LoadFavoriteTeam();
         }
 
+        // Loads matches and refreshes players and rankings for the selected team
+        private async Task LoadSelectedTeamDataAsync(Team selectedTeam, bool persistFavoriteTeam)
+        {
+            if (_settings is null)
+            {
+                return;
+            }
+
+            if (persistFavoriteTeam)
+            {
+                _favoriteTeamService.SaveFavoriteTeam(selectedTeam.FifaCode);
+            }
+
+            _matches = await _worldCupData.GetMatchesByFifaCodeAsync(_settings, selectedTeam.FifaCode);
+            RebuildPlayerPanels();
+            RebuildRankingGrids();
+        }
+
         // Saves the new favorite team code and reloads matches plus player tiles
         private async void CbFavoriteTeam_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -119,18 +137,13 @@ namespace WorldCupStats.WinForms
                 return;
             }
 
-            // 1. Persist the new favorite team code
-            _favoriteTeamService.SaveFavoriteTeam(selectedTeam.FifaCode);
-
             try
             {
-                // 2. Show loading while matches load
+                // 1. Show loading while matches load
                 ShowLoading();
 
-                // 3. Fetch matches for this team then refresh the UI
-                _matches = await _worldCupData.GetMatchesByFifaCodeAsync(_settings, selectedTeam.FifaCode);
-                RebuildPlayerPanels();
-                RebuildRankingGrids();
+                // 2. Fetch matches for this team then refresh the UI
+                await LoadSelectedTeamDataAsync(selectedTeam, persistFavoriteTeam: true);
             }
             catch (Exception ex)
             {
@@ -138,7 +151,7 @@ namespace WorldCupStats.WinForms
             }
             finally
             {
-                // 4. Hide loading after success or error
+                // 3. Hide loading after success or error
                 HideLoading();
             }
         }
@@ -412,7 +425,8 @@ namespace WorldCupStats.WinForms
         private async void BtnSettings_Click(object sender, EventArgs e)
         {
             // 1. Open SettingsForm as a dialog
-            using SettingsForm formSettings = new SettingsForm();
+            using SettingsForm formSettings =
+                new SettingsForm(_settings);
 
             // 2. If user cancels, do nothing
             if (formSettings.ShowDialog() != DialogResult.OK || formSettings.SelectedSettings is null)
@@ -433,6 +447,9 @@ namespace WorldCupStats.WinForms
             try
             {
                 _isLoading = true;
+                ShowLoading();
+
+                string? favoriteFifaCode = _favoriteTeamService.LoadFavoriteTeam();
 
                 // 1. Reload teams for the new settings
                 _teams = await _worldCupData.GetTeamsAsync(_settings);
@@ -446,10 +463,26 @@ namespace WorldCupStats.WinForms
                 _matches = new List<Match>();
                 ClearFlowPanel(flowFavoritePlayers);
                 ClearFlowPanel(flowOtherPlayers);
+                DisposeRankingGridImages();
                 dgvPlayerRankings.DataSource = null;
                 dgvMatchRankings.DataSource = null;
-                // 4. Do not reuse old favorite team automatically after settings change
-                cbFavoriteTeam.SelectedIndex = -1;
+
+                // 4. Restore favorite team when it exists in the new team list
+                Team? favoriteTeam = _teams.FirstOrDefault(team =>
+                    string.Equals(
+                        team.FifaCode,
+                        favoriteFifaCode,
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (favoriteTeam is null)
+                {
+                    cbFavoriteTeam.SelectedIndex = -1;
+                }
+                else
+                {
+                    cbFavoriteTeam.SelectedItem = favoriteTeam;
+                    await LoadSelectedTeamDataAsync(favoriteTeam, persistFavoriteTeam: false);
+                }
             }
             catch (Exception ex)
             {
@@ -458,6 +491,7 @@ namespace WorldCupStats.WinForms
             finally
             {
                 _isLoading = false;
+                HideLoading();
             }
 
         }
@@ -475,7 +509,7 @@ namespace WorldCupStats.WinForms
             // 2. Keep the application open if the user clicks Cancel or presses Esc
             if (result != DialogResult.OK)
             {
-                e.Cancel = true;
+                e.Cancel = true;// Cancel or Esc- stay open
             }
         }
         // Shows a simple loading message while async work is running
@@ -483,6 +517,7 @@ namespace WorldCupStats.WinForms
         {
             lblLoading.Visible = true;
             lblLoading.BringToFront();
+                lblLoading.Refresh(); 
         }
 
         // Hides the loading message after async work is finished
@@ -835,14 +870,8 @@ namespace WorldCupStats.WinForms
             }
         }
 
-        // Uses the normal print flow. User can choose Microsoft Print to PDF
-        private void btnExportRankings_Click(object sender, EventArgs e)
-        {
-            btnPrintRankings_Click(sender, e);
-        }
-
-
-        // Prints ranking tables with simple pagination
+       
+        // Prints ranking tables with pagination
         private void printDocumentRankings_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
         {
             if (e.Graphics == null)

@@ -23,6 +23,6 @@ namespace WorldCupStats.Data.Models
         public ChampionshipType Championship { get; set; }
         public DataSourceMode DataSource { get; set; }
         public bool IsFullScreen { get; set; }
-        public string Resolution { get; set; } = "800x450";
+        public string Resolution { get; set; } = "1024x768";
     }
 }

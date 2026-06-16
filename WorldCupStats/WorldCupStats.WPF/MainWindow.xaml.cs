@@ -376,14 +376,10 @@ namespace WorldCupStats.WPF
 
             // 3. Get statistics for both teams
             TeamStatistics? favoriteStatistics =
-                GetTeamStatistics(
-                    match,
-                    favoriteTeam.FifaCode);
+                GetTeamStatistics(match, favoriteTeam.FifaCode);
 
             TeamStatistics? opponentStatistics =
-                GetTeamStatistics(
-                    match,
-                    opponentTeam.FifaCode);
+                GetTeamStatistics(match, opponentTeam.FifaCode);
 
             // 4. Draw favorite team on the left half
             if (favoriteStatistics?.StartingEleven is not null)
@@ -391,10 +387,10 @@ namespace WorldCupStats.WPF
                 foreach (Player player in favoriteStatistics.StartingEleven)
                 {
                     DrawPlayerOnPitch(
-     player,
-     favoriteTeam.FifaCode,
-     PitchSide.Left,
-     favoriteStatistics.StartingEleven);
+                     player,
+                     favoriteTeam.FifaCode,
+                     PitchSide.Left,
+                     favoriteStatistics.StartingEleven);
                 }
             }
 
@@ -434,10 +430,7 @@ namespace WorldCupStats.WPF
                 CountPlayersAlreadyDrawnInPosition(
                     player.Position,
                     pitchSide);
-            int samePositionCount =
-    CountPlayersInPosition(
-        startingEleven,
-        player.Position);
+            int samePositionCount = CountPlayersInPosition(startingEleven, player.Position);
 
             double controlHeight = 58;
 
@@ -615,47 +608,47 @@ namespace WorldCupStats.WPF
             return count;
         }
         // Opens the details window for the selected player
-private void OpenPlayerDetails(
-    Player player,
-    string fifaCode)
-{
-    Match? match = GetSelectedMatch();
+        private void OpenPlayerDetails(
+            Player player,
+            string fifaCode)
+        {
+            Match? match = GetSelectedMatch();
 
-    if (match is null)
-    {
-        return;
-    }
+            if (match is null)
+            {
+                return;
+            }
 
-    List<MatchEvent> events =
-        GetTeamEvents(match, fifaCode);
+            List<MatchEvent> events =
+                GetTeamEvents(match, fifaCode);
 
-    int goals =
-        CountPlayerEventsInMatch(
-            player,
-            events,
-            "goal");
+            int goals =
+                CountPlayerEventsInMatch(
+                    player,
+                    events,
+                    "goal");
 
-    int yellowCards =
-        CountPlayerEventsInMatch(
-            player,
-            events,
-            "yellow-card");
+            int yellowCards =
+                CountPlayerEventsInMatch(
+                    player,
+                    events,
+                    "yellow-card");
 
-    string imagePath =
-        _playerImageService.GetPlayerImagePathOrDefault(
-            fifaCode,
-            player);
+            string imagePath =
+                _playerImageService.GetPlayerImagePathOrDefault(
+                    fifaCode,
+                    player);
 
-    PlayerDetailsWindow window =
-        new PlayerDetailsWindow(
-            player,
-            goals,
-            yellowCards,
-            imagePath);
+            PlayerDetailsWindow window =
+                new PlayerDetailsWindow(
+                    player,
+                    goals,
+                    yellowCards,
+                    imagePath);
 
-    window.Owner = this;
-    window.ShowDialog();
-}
+            window.Owner = this;
+            window.ShowDialog();
+        }
         // Applies WPF window mode and resolution settings
         private void ApplyDisplaySettings()
         {
@@ -664,10 +657,10 @@ private void OpenPlayerDetails(
                 return;
             }
 
-            if (_settings.Resolution == "1024x768")
+            if (_settings.Resolution == "800x450")
             {
-                Width = 1024;
-                Height = 768;
+                Width = 800;
+                Height = 450;
             }
             else if (_settings.Resolution == "1280x720")
             {
@@ -676,8 +669,8 @@ private void OpenPlayerDetails(
             }
             else
             {
-                Width = 800;
-                Height = 450;
+                Width = 1024;
+                Height = 768;
             }
 
             if (_settings.IsFullScreen)
@@ -689,12 +682,21 @@ private void OpenPlayerDetails(
             {
                 WindowStyle = WindowStyle.SingleBorderWindow;
                 WindowState = WindowState.Normal;
+
+                CenterWindow();
             }
         }
+
+        // Places the window in the center of the usable screen area
+        private void CenterWindow()
+        {
+            Rect workArea = SystemParameters.WorkArea;
+
+            Left = workArea.Left + (workArea.Width - Width) / 2;
+            Top = workArea.Top + (workArea.Height - Height) / 2;
+        }
         // Redraws both starting elevens when the pitch changes size
-        private void pitchCanvas_SizeChanged(
-            object? sender,
-            SizeChangedEventArgs e)
+        private void pitchCanvas_SizeChanged(object? sender, SizeChangedEventArgs e)
         {
             if (!IsLoaded)
             {

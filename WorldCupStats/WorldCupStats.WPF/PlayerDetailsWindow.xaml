@@ -27,7 +27,7 @@
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0"
-                Width="120"
+                Width="130"
                 Height="150"
                 BorderBrush="Gray"
                 BorderThickness="1"

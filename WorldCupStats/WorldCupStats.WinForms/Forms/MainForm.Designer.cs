@@ -66,7 +66,6 @@ namespace WorldCupStats.WinForms
             btnPageSetupRankings = new Button();
             btnPreviewRankings = new Button();
             btnPrintRankings = new Button();
-            btnExportRankings = new Button();
             printDocumentRankings = new System.Drawing.Printing.PrintDocument();
             printDialogRankings = new PrintDialog();
             printPreviewDialogRankings = new PrintPreviewDialog();
@@ -121,7 +120,7 @@ namespace WorldCupStats.WinForms
             panelTop.Location = new Point(0, 0);
             panelTop.Name = "panelTop";
             panelTop.Padding = new Padding(12, 12, 12, 8);
-            panelTop.Size = new Size(1175, 60);
+            panelTop.Size = new Size(1232, 60);
             panelTop.TabIndex = 0;
             // 
             // cbFavoriteTeam
@@ -147,7 +146,7 @@ namespace WorldCupStats.WinForms
             // 
             btnSettings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSettings.BackColor = Color.White;
-            btnSettings.Location = new Point(1069, 13);
+            btnSettings.Location = new Point(1126, 13);
             btnSettings.Name = "btnSettings";
             btnSettings.Size = new Size(94, 29);
             btnSettings.TabIndex = 2;
@@ -163,7 +162,7 @@ namespace WorldCupStats.WinForms
             tabMain.Location = new Point(0, 60);
             tabMain.Name = "tabMain";
             tabMain.SelectedIndex = 0;
-            tabMain.Size = new Size(1175, 675);
+            tabMain.Size = new Size(1232, 743);
             tabMain.TabIndex = 1;
             // 
             // tabPlayers
@@ -172,7 +171,7 @@ namespace WorldCupStats.WinForms
             tabPlayers.Location = new Point(4, 29);
             tabPlayers.Name = "tabPlayers";
             tabPlayers.Padding = new Padding(3);
-            tabPlayers.Size = new Size(1167, 642);
+            tabPlayers.Size = new Size(1224, 710);
             tabPlayers.TabIndex = 0;
             tabPlayers.Text = "Players";
             tabPlayers.UseVisualStyleBackColor = true;
@@ -192,7 +191,7 @@ namespace WorldCupStats.WinForms
             tablePlayers.RowCount = 2;
             tablePlayers.RowStyles.Add(new RowStyle());
             tablePlayers.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tablePlayers.Size = new Size(1161, 636);
+            tablePlayers.Size = new Size(1218, 704);
             tablePlayers.TabIndex = 0;
             // 
             // lblFavoritePlayersHeader
@@ -202,7 +201,7 @@ namespace WorldCupStats.WinForms
             lblFavoritePlayersHeader.Location = new Point(3, 0);
             lblFavoritePlayersHeader.Margin = new Padding(3, 0, 3, 4);
             lblFavoritePlayersHeader.Name = "lblFavoritePlayersHeader";
-            lblFavoritePlayersHeader.Size = new Size(574, 20);
+            lblFavoritePlayersHeader.Size = new Size(603, 20);
             lblFavoritePlayersHeader.TabIndex = 0;
             lblFavoritePlayersHeader.Text = "Favorite players";
             // 
@@ -210,10 +209,10 @@ namespace WorldCupStats.WinForms
             // 
             lblOtherPlayersHeader.AutoSize = true;
             lblOtherPlayersHeader.Dock = DockStyle.Fill;
-            lblOtherPlayersHeader.Location = new Point(583, 0);
+            lblOtherPlayersHeader.Location = new Point(612, 0);
             lblOtherPlayersHeader.Margin = new Padding(3, 0, 3, 4);
             lblOtherPlayersHeader.Name = "lblOtherPlayersHeader";
-            lblOtherPlayersHeader.Size = new Size(575, 20);
+            lblOtherPlayersHeader.Size = new Size(603, 20);
             lblOtherPlayersHeader.TabIndex = 1;
             lblOtherPlayersHeader.Text = "Other players";
             // 
@@ -228,7 +227,7 @@ namespace WorldCupStats.WinForms
             flowFavoritePlayers.Location = new Point(3, 24);
             flowFavoritePlayers.Margin = new Padding(3, 0, 3, 3);
             flowFavoritePlayers.Name = "flowFavoritePlayers";
-            flowFavoritePlayers.Size = new Size(574, 609);
+            flowFavoritePlayers.Size = new Size(603, 677);
             flowFavoritePlayers.TabIndex = 2;
             flowFavoritePlayers.WrapContents = false;
             flowFavoritePlayers.DragDrop += PlayerPanel_DragDrop;
@@ -242,10 +241,10 @@ namespace WorldCupStats.WinForms
             flowOtherPlayers.ContextMenuStrip = contextMenuPlayers;
             flowOtherPlayers.Dock = DockStyle.Fill;
             flowOtherPlayers.FlowDirection = FlowDirection.TopDown;
-            flowOtherPlayers.Location = new Point(583, 24);
+            flowOtherPlayers.Location = new Point(612, 24);
             flowOtherPlayers.Margin = new Padding(3, 0, 3, 3);
             flowOtherPlayers.Name = "flowOtherPlayers";
-            flowOtherPlayers.Size = new Size(575, 609);
+            flowOtherPlayers.Size = new Size(603, 677);
             flowOtherPlayers.TabIndex = 3;
             flowOtherPlayers.WrapContents = false;
             flowOtherPlayers.DragDrop += PlayerPanel_DragDrop;
@@ -258,7 +257,7 @@ namespace WorldCupStats.WinForms
             tabRankings.Location = new Point(4, 29);
             tabRankings.Name = "tabRankings";
             tabRankings.Padding = new Padding(3);
-            tabRankings.Size = new Size(1167, 642);
+            tabRankings.Size = new Size(1224, 710);
             tabRankings.TabIndex = 1;
             tabRankings.Text = "Rankings";
             tabRankings.UseVisualStyleBackColor = true;
@@ -278,7 +277,7 @@ namespace WorldCupStats.WinForms
             tableRankings.RowCount = 2;
             tableRankings.RowStyles.Add(new RowStyle());
             tableRankings.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableRankings.Size = new Size(1161, 586);
+            tableRankings.Size = new Size(1218, 654);
             tableRankings.TabIndex = 0;
             // 
             // lblPlayerRankings
@@ -288,7 +287,7 @@ namespace WorldCupStats.WinForms
             lblPlayerRankings.Location = new Point(3, 0);
             lblPlayerRankings.Margin = new Padding(3, 0, 3, 4);
             lblPlayerRankings.Name = "lblPlayerRankings";
-            lblPlayerRankings.Size = new Size(690, 20);
+            lblPlayerRankings.Size = new Size(724, 20);
             lblPlayerRankings.TabIndex = 0;
             lblPlayerRankings.Text = "Player rankings";
             // 
@@ -296,10 +295,10 @@ namespace WorldCupStats.WinForms
             // 
             lblMatchRankings.AutoSize = true;
             lblMatchRankings.Dock = DockStyle.Fill;
-            lblMatchRankings.Location = new Point(699, 0);
+            lblMatchRankings.Location = new Point(733, 0);
             lblMatchRankings.Margin = new Padding(3, 0, 3, 4);
             lblMatchRankings.Name = "lblMatchRankings";
-            lblMatchRankings.Size = new Size(459, 20);
+            lblMatchRankings.Size = new Size(482, 20);
             lblMatchRankings.TabIndex = 1;
             lblMatchRankings.Text = "Match rankings";
             // 
@@ -318,7 +317,7 @@ namespace WorldCupStats.WinForms
             dgvPlayerRankings.RowHeadersWidth = 51;
             dgvPlayerRankings.RowTemplate.Height = 55;
             dgvPlayerRankings.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvPlayerRankings.Size = new Size(690, 559);
+            dgvPlayerRankings.Size = new Size(724, 627);
             dgvPlayerRankings.TabIndex = 2;
             dgvPlayerRankings.DataBindingComplete += dgvPlayerRankings_DataBindingComplete;
             // 
@@ -397,14 +396,14 @@ namespace WorldCupStats.WinForms
             dgvMatchRankings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvMatchRankings.Columns.AddRange(new DataGridViewColumn[] { colMatchLocation, colMatchAttendance, colMatchHomeTeam, colMatchAwayTeam });
             dgvMatchRankings.Dock = DockStyle.Fill;
-            dgvMatchRankings.Location = new Point(699, 24);
+            dgvMatchRankings.Location = new Point(733, 24);
             dgvMatchRankings.Margin = new Padding(3, 0, 3, 3);
             dgvMatchRankings.Name = "dgvMatchRankings";
             dgvMatchRankings.ReadOnly = true;
             dgvMatchRankings.RowHeadersVisible = false;
             dgvMatchRankings.RowHeadersWidth = 51;
             dgvMatchRankings.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvMatchRankings.Size = new Size(459, 559);
+            dgvMatchRankings.Size = new Size(482, 627);
             dgvMatchRankings.TabIndex = 3;
             // 
             // colMatchLocation
@@ -449,18 +448,17 @@ namespace WorldCupStats.WinForms
             panelRankingButtons.Controls.Add(btnPageSetupRankings);
             panelRankingButtons.Controls.Add(btnPreviewRankings);
             panelRankingButtons.Controls.Add(btnPrintRankings);
-            panelRankingButtons.Controls.Add(btnExportRankings);
             panelRankingButtons.Dock = DockStyle.Bottom;
-            panelRankingButtons.Location = new Point(3, 589);
+            panelRankingButtons.Location = new Point(3, 657);
             panelRankingButtons.Name = "panelRankingButtons";
             panelRankingButtons.Padding = new Padding(12, 8, 12, 8);
-            panelRankingButtons.Size = new Size(1161, 50);
+            panelRankingButtons.Size = new Size(1218, 50);
             panelRankingButtons.TabIndex = 1;
             // 
             // btnPageSetupRankings
             // 
             btnPageSetupRankings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnPageSetupRankings.Location = new Point(765, 10);
+            btnPageSetupRankings.Location = new Point(931, 11);
             btnPageSetupRankings.Name = "btnPageSetupRankings";
             btnPageSetupRankings.Size = new Size(100, 29);
             btnPageSetupRankings.TabIndex = 0;
@@ -471,7 +469,7 @@ namespace WorldCupStats.WinForms
             // btnPreviewRankings
             // 
             btnPreviewRankings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnPreviewRankings.Location = new Point(873, 10);
+            btnPreviewRankings.Location = new Point(1037, 11);
             btnPreviewRankings.Name = "btnPreviewRankings";
             btnPreviewRankings.Size = new Size(85, 29);
             btnPreviewRankings.TabIndex = 1;
@@ -482,24 +480,13 @@ namespace WorldCupStats.WinForms
             // btnPrintRankings
             // 
             btnPrintRankings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnPrintRankings.Location = new Point(966, 10);
+            btnPrintRankings.Location = new Point(1128, 10);
             btnPrintRankings.Name = "btnPrintRankings";
             btnPrintRankings.Size = new Size(75, 29);
             btnPrintRankings.TabIndex = 2;
             btnPrintRankings.Text = "Print";
             btnPrintRankings.UseVisualStyleBackColor = true;
             btnPrintRankings.Click += btnPrintRankings_Click;
-            // 
-            // btnExportRankings
-            // 
-            btnExportRankings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnExportRankings.Location = new Point(1049, 10);
-            btnExportRankings.Name = "btnExportRankings";
-            btnExportRankings.Size = new Size(100, 29);
-            btnExportRankings.TabIndex = 3;
-            btnExportRankings.Text = "Export PDF";
-            btnExportRankings.UseVisualStyleBackColor = true;
-            btnExportRankings.Click += btnExportRankings_Click;
             // 
             // printDocumentRankings
             // 
@@ -531,11 +518,12 @@ namespace WorldCupStats.WinForms
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1175, 735);
+            ClientSize = new Size(1232, 803);
             Controls.Add(tabMain);
             Controls.Add(panelTop);
             Margin = new Padding(3, 4, 3, 4);
             Name = "MainForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "MainForm";
             FormClosing += MainForm_FormClosing;
             Load += MainForm_Load;
@@ -574,7 +562,6 @@ namespace WorldCupStats.WinForms
         private Button btnPageSetupRankings;
         private Button btnPreviewRankings;
         private Button btnPrintRankings;
-        private Button btnExportRankings;
         private Label lblPlayerRankings;
         private Label lblMatchRankings;
         private DataGridView dgvPlayerRankings;

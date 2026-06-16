@@ -16,7 +16,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Width="40"
+                    Width="50"
                     Height="48"
                     BorderBrush="LightGray"
                     BorderThickness="1"

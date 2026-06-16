@@ -37,7 +37,7 @@ namespace WorldCupStats.WinForms.Forms
             // CbChampionship
             // 
             CbChampionship.FormattingEnabled = true;
-            CbChampionship.Location = new Point(199, 211);
+            CbChampionship.Location = new Point(95, 75);
             CbChampionship.Name = "CbChampionship";
             CbChampionship.Size = new Size(151, 28);
             CbChampionship.TabIndex = 0;
@@ -46,7 +46,7 @@ namespace WorldCupStats.WinForms.Forms
             // 
             CbDataSource.DropDownStyle = ComboBoxStyle.DropDownList;
             CbDataSource.FormattingEnabled = true;
-            CbDataSource.Location = new Point(199, 260);
+            CbDataSource.Location = new Point(95, 124);
             CbDataSource.Name = "CbDataSource";
             CbDataSource.Size = new Size(151, 28);
             CbDataSource.TabIndex = 1;
@@ -54,7 +54,7 @@ namespace WorldCupStats.WinForms.Forms
             // BtnConfirm
             // 
             BtnConfirm.BackColor = Color.MediumAquamarine;
-            BtnConfirm.Location = new Point(418, 380);
+            BtnConfirm.Location = new Point(316, 241);
             BtnConfirm.Name = "BtnConfirm";
             BtnConfirm.Size = new Size(142, 58);
             BtnConfirm.TabIndex = 2;
@@ -66,7 +66,7 @@ namespace WorldCupStats.WinForms.Forms
             // 
             BtnCancel.BackColor = Color.DarkRed;
             BtnCancel.ForeColor = Color.White;
-            BtnCancel.Location = new Point(251, 380);
+            BtnCancel.Location = new Point(149, 241);
             BtnCancel.Name = "BtnCancel";
             BtnCancel.Size = new Size(142, 58);
             BtnCancel.TabIndex = 3;
@@ -78,12 +78,13 @@ namespace WorldCupStats.WinForms.Forms
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(552, 373);
             Controls.Add(BtnCancel);
             Controls.Add(BtnConfirm);
             Controls.Add(CbDataSource);
             Controls.Add(CbChampionship);
             Name = "SettingsForm";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "SettingsForm";
             Load += SettingsForm_Load;
             ResumeLayout(false);
